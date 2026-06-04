@@ -389,6 +389,23 @@ h1 {
   gap: 14px;
 }
 
+.load-more-wrap {
+  margin-top: 16px;
+}
+
+.load-more-card {
+  display: grid;
+  gap: 12px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 248, 236, 0.98), rgba(255, 255, 255, 0.96));
+  border: 1px solid rgba(180, 74, 8, 0.16);
+}
+
+.load-more-card p {
+  margin-bottom: 0;
+}
+
 .list-loading {
   padding: 18px 20px;
   border-radius: 20px;
@@ -433,6 +450,24 @@ h1 {
 .star {
   color: #c89000;
   font-size: 1.05rem;
+}
+
+.match-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.mini-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(35, 82, 116, 0.09);
+  color: #235274;
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 
 .spotlight-content {

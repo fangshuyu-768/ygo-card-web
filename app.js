@@ -87,6 +87,8 @@ const remoteCacheKey = "ygo-card-web-remote-cache-v1";
 const remoteCacheTTL = 1000 * 60 * 60 * 24 * 2;
 const remoteSearchMinimumLength = 2;
 const remoteSearchEndpoint = "https://db.ygoprodeck.com/api/v7/cardinfo.php";
+const initialVisibleCardCount = 14;
+const visibleCardStep = 12;
 
 const state = {
   searchText: "",
@@ -98,7 +100,8 @@ const state = {
   remoteCards: [],
   remoteStatus: "还没开始在线搜索。输入 2 个以上字符后，会去线上卡牌库补充结果。",
   remoteError: "",
-  isRemoteLoading: false
+  isRemoteLoading: false,
+  visibleCardCount: initialVisibleCardCount
 };
 
 const elements = {
@@ -113,12 +116,14 @@ const elements = {
   clearFiltersButton: document.querySelector("#clear-filters-button"),
   randomCardButton: document.querySelector("#random-card-button"),
   speakSpotlightButton: document.querySelector("#speak-spotlight-button"),
-  remoteStatus: document.querySelector("#remote-status")
+  remoteStatus: document.querySelector("#remote-status"),
+  loadMoreWrap: document.querySelector("#load-more-wrap")
 };
 
 let recognition = null;
 let remoteSearchTimer = null;
 let activeRemoteRequestToken = 0;
+let loadMoreObserver = null;
 const remoteCache = loadRemoteCache();
 
 setup();
@@ -134,6 +139,7 @@ function setup() {
 function attachEvents() {
   elements.searchInput.addEventListener("input", (event) => {
     state.searchText = event.target.value;
+    state.visibleCardCount = initialVisibleCardCount;
     scheduleRemoteSearch();
     keepSelectionVisible();
     render();
@@ -141,6 +147,7 @@ function attachEvents() {
 
   elements.favoritesOnlyCheckbox.addEventListener("change", (event) => {
     state.favoritesOnly = event.target.checked;
+    state.visibleCardCount = initialVisibleCardCount;
     keepSelectionVisible();
     render();
   });
@@ -153,6 +160,7 @@ function attachEvents() {
     state.remoteCards = [];
     state.remoteError = "";
     state.remoteStatus = "当前展示的是内置示例卡牌。";
+    state.visibleCardCount = initialVisibleCardCount;
     syncControls();
     keepSelectionVisible();
     render();
@@ -214,6 +222,7 @@ function renderCategoryFilters() {
     button.textContent = category;
     button.addEventListener("click", () => {
       state.selectedCategory = category;
+      state.visibleCardCount = initialVisibleCardCount;
       renderCategoryFilters();
       keepSelectionVisible();
       render();
@@ -294,6 +303,7 @@ function renderList() {
   const onlineCount = filteredCards.filter((card) => card.source === "remote").length;
   const sampleCount = filteredCards.length - onlineCount;
   elements.resultCount.textContent = `共找到 ${filteredCards.length} 张卡牌，其中内置 ${sampleCount} 张，线上 ${onlineCount} 张`;
+  const visibleCards = filteredCards.slice(0, state.visibleCardCount);
 
   if (state.isRemoteLoading) {
     elements.cardList.innerHTML = `
@@ -316,9 +326,12 @@ function renderList() {
     return;
   }
 
-  elements.cardList.innerHTML += filteredCards
+  elements.cardList.innerHTML += visibleCards
     .map((card) => {
       const activeClass = card.id === state.selectedCardId ? " active" : "";
+      const matchBadges = buildMatchBadges(card)
+        .map((badge) => `<span class="mini-badge">${escapeHtml(badge)}</span>`)
+        .join("");
       return `
         <article class="list-card${activeClass}" data-card-id="${card.id}">
           <img class="list-card-image" src="${escapeHtml(card.imageURL)}" alt="${escapeHtml(card.localizedName)}" />
@@ -333,6 +346,7 @@ function renderList() {
             <p class="card-meta">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</p>
             <p class="card-meta">${escapeHtml(getSourceLabel(card))}</p>
             <p class="card-summary">${escapeHtml(card.childFriendlySummary)}</p>
+            ${matchBadges ? `<div class="match-badges">${matchBadges}</div>` : ""}
           </div>
         </article>
       `;
@@ -345,6 +359,8 @@ function renderList() {
       render();
     });
   });
+
+  renderLoadMore(filteredCards, visibleCards.length);
 }
 
 function renderDetail() {
@@ -454,6 +470,55 @@ function chooseRandomSpotlight() {
   state.spotlightCardId = randomCard.id;
 }
 
+function renderLoadMore(filteredCards, visibleCount) {
+  teardownLoadMoreObserver();
+
+  if (visibleCount >= filteredCards.length) {
+    elements.loadMoreWrap.innerHTML = "";
+    return;
+  }
+
+  const remaining = filteredCards.length - visibleCount;
+  elements.loadMoreWrap.innerHTML = `
+    <div class="load-more-card">
+      <strong>还有 ${remaining} 张卡牌可以继续看</strong>
+      <p class="list-subtext">继续往下滚动时会自动显示更多结果，也可以手动点按钮。</p>
+      <button class="secondary-button" id="load-more-button">再加载 ${Math.min(visibleCardStep, remaining)} 张</button>
+      <div id="load-more-sentinel"></div>
+    </div>
+  `;
+
+  document.querySelector("#load-more-button")?.addEventListener("click", () => {
+    loadMoreCards();
+  });
+
+  const sentinel = document.querySelector("#load-more-sentinel");
+  if (!sentinel || !("IntersectionObserver" in window)) return;
+
+  loadMoreObserver = new IntersectionObserver((entries) => {
+    const isVisible = entries.some((entry) => entry.isIntersecting);
+    if (isVisible) {
+      loadMoreCards();
+    }
+  }, { rootMargin: "220px 0px" });
+
+  loadMoreObserver.observe(sentinel);
+}
+
+function teardownLoadMoreObserver() {
+  if (loadMoreObserver) {
+    loadMoreObserver.disconnect();
+    loadMoreObserver = null;
+  }
+}
+
+function loadMoreCards() {
+  const filteredCards = getFilteredCards();
+  if (state.visibleCardCount >= filteredCards.length) return;
+  state.visibleCardCount = Math.min(filteredCards.length, state.visibleCardCount + visibleCardStep);
+  render();
+}
+
 function getAllCards() {
   const merged = new Map();
   [...sampleCards, ...state.remoteCards].forEach((card) => {
@@ -464,6 +529,23 @@ function getAllCards() {
 
 function getSourceLabel(card) {
   return card.source === "remote" ? "在线卡库" : "内置示例";
+}
+
+function buildMatchBadges(card) {
+  const badges = [];
+  const summary = `${card.childFriendlySummary} ${card.effectText}`.toLowerCase();
+
+  if (summary.includes("destroy")) badges.push("偏破坏");
+  if (summary.includes("special summon")) badges.push("会召回伙伴");
+  if (summary.includes("add 1")) badges.push("会找卡");
+  if (summary.includes("negate")) badges.push("会打断效果");
+  if (summary.includes("cannot attack")) badges.push("偏限制对手");
+  if (summary.includes("draw")) badges.push("会补手牌");
+  if (summary.includes("gy") || summary.includes("graveyard")) badges.push("和墓地有关");
+  if (summary.includes("banish")) badges.push("会除外卡牌");
+  if (summary.includes("target")) badges.push("需要选定目标");
+
+  return badges.slice(0, 3);
 }
 
 function loadFavorites() {
@@ -538,6 +620,7 @@ async function performRemoteSearch(query) {
     state.remoteCards = cachedEntry.cards;
     state.isRemoteLoading = false;
     state.remoteStatus = `已从本地缓存恢复 ${cachedEntry.cards.length} 张线上卡牌。`;
+    state.visibleCardCount = initialVisibleCardCount;
     keepSelectionVisible();
     render();
     return;
@@ -565,6 +648,7 @@ async function performRemoteSearch(query) {
     if (requestToken !== activeRemoteRequestToken) return;
     state.remoteCards = remoteCards;
     state.isRemoteLoading = false;
+    state.visibleCardCount = initialVisibleCardCount;
     state.remoteStatus = remoteCards.length
       ? `线上卡牌库补充了 ${remoteCards.length} 张相关卡牌。`
       : "线上卡牌库没有返回更多结果，当前只显示本地示例卡。";
@@ -574,6 +658,7 @@ async function performRemoteSearch(query) {
     if (requestToken !== activeRemoteRequestToken) return;
     state.remoteCards = [];
     state.isRemoteLoading = false;
+    state.visibleCardCount = initialVisibleCardCount;
     state.remoteError = "线上搜索暂时失败，先继续用内置卡牌。";
     state.remoteStatus = "没能连上线上卡牌库。";
     keepSelectionVisible();
@@ -616,18 +701,60 @@ function inferCategory(typeLine) {
 }
 
 function summarizeCardForKids({ name, category, typeLine, effectText }) {
-  const shortEffect = String(effectText).replace(/\s+/g, " ").trim();
-  const safeEffect = shortEffect.length > 92 ? `${shortEffect.slice(0, 92)}...` : shortEffect;
+  const effect = String(effectText).replace(/\s+/g, " ").trim();
+  const lowered = effect.toLowerCase();
+  const effectParts = [];
+
+  if (lowered.includes("special summon")) effectParts.push("能把怪兽特别叫上场");
+  if (lowered.includes("add 1")) effectParts.push("能从卡组找来需要的卡");
+  if (lowered.includes("destroy")) effectParts.push("会破坏场上的卡");
+  if (lowered.includes("negate")) effectParts.push("能打断或无效化对手动作");
+  if (lowered.includes("draw")) effectParts.push("能帮自己多抽卡");
+  if (lowered.includes("return it to the hand") || lowered.includes("return 1") || lowered.includes("return that target")) effectParts.push("会把卡弹回手上");
+  if (lowered.includes("cannot attack")) effectParts.push("会限制对手进攻");
+  if (lowered.includes("battle damage")) effectParts.push("和战斗伤害有关");
+  if (lowered.includes("banish")) effectParts.push("会把卡直接除外");
+  if (lowered.includes("gy") || lowered.includes("graveyard")) effectParts.push("会和墓地资源互动");
+  if (lowered.includes("target")) effectParts.push("发动时通常要先选目标");
+  if (lowered.includes("cannot be destroyed") || lowered.includes("cannot target")) effectParts.push("自己比较不容易被处理掉");
+
+  const uniqueParts = [...new Set(effectParts)].slice(0, 3);
+  const summaryCore = uniqueParts.length
+    ? `它大致可以理解成：${uniqueParts.join("，")}。`
+    : "它主要是用来帮助自己推进战局，或者阻止对手顺利出招。";
+
+  const flavor = buildKidFriendlyFlavor(name, category, typeLine, lowered);
+  return `${flavor}${summaryCore}`;
+}
+
+function buildKidFriendlyFlavor(name, category, typeLine, loweredEffect) {
+  const loweredName = String(name).toLowerCase();
+
+  if (loweredName.includes("dragon")) {
+    return `${name} 给人的感觉像一条很能打的大龙，适合当作场上的主力角色。`;
+  }
+
+  if (loweredName.includes("magician") || loweredName.includes("wizard") || loweredName.includes("spell")) {
+    return `${name} 比较像会施法的角色，重点常常不是硬碰硬，而是靠效果改变局面。`;
+  }
+
+  if (loweredName.includes("kuriboh")) {
+    return `${name} 看起来像小帮手类型的卡，往往是在关键时刻出来保护自己。`;
+  }
 
   if (category === "怪兽") {
-    return `${name} 是一张${typeLine || "怪兽卡"}。简单理解，它是在场上负责战斗或帮忙出招的角色。${safeEffect}`;
+    if (loweredEffect.includes("fusion") || String(typeLine).toLowerCase().includes("fusion")) {
+      return `${name} 是一张合体后更强的怪兽卡，像把几个角色力量合在一起。`;
+    }
+
+    return `${name} 是一张怪兽卡，可以把它想成站在前线战斗或帮忙出招的角色。`;
   }
 
   if (category === "魔法") {
-    return `${name} 是一张魔法卡。它更像突然施展出来的法术，用来帮自己、限制对手，或者改变战局。${safeEffect}`;
+    return `${name} 是一张魔法卡，比较像突然施展出来的法术，用来帮助自己或限制对手。`;
   }
 
-  return `${name} 是一张陷阱卡。它通常会先埋伏起来，等合适的时候再跳出来影响战斗。${safeEffect}`;
+  return `${name} 是一张陷阱卡，通常会先埋伏起来，等到合适时机再跳出来影响战斗。`;
 }
 
 function speakCard(card) {
