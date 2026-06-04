@@ -8,7 +8,9 @@ const sampleCards = [
     imageURL: "https://images.ygoprodeck.com/images/cards/89631139.jpg",
     effectText: "This legendary dragon is a powerful engine of destruction.",
     childFriendlySummary: "通常怪兽，没有效果，主要依靠 3000 攻击力和 2500 守备力进行战斗。",
-    recommendedUsage: "适合作为高攻击力主力怪兽使用，通常在能够稳定上场时用来压制对手场面。"
+    recommendedUsage: "适合作为高攻击力主力怪兽使用，通常在能够稳定上场时用来压制对手场面。",
+    usageTags: ["偏后手", "偏进攻", "主力打点"],
+    synergyNotes: "适合与能够检索、特殊召唤或保护高星通常龙族怪兽的卡配合。"
   },
   {
     id: 46986414,
@@ -19,7 +21,9 @@ const sampleCards = [
     imageURL: "https://images.ygoprodeck.com/images/cards/46986414.jpg",
     effectText: "The ultimate wizard in terms of attack and defense.",
     childFriendlySummary: "通常怪兽，没有效果，主要作为高攻击力的经典怪兽使用。",
-    recommendedUsage: "适合作为基础打点怪兽使用，通常用于配合以黑魔导为核心的相关支援卡。"
+    recommendedUsage: "适合作为基础打点怪兽使用，通常用于配合以黑魔导为核心的相关支援卡。",
+    usageTags: ["偏中盘", "偏进攻", "系列核心"],
+    synergyNotes: "适合和黑魔导相关的检索、特殊召唤、装备或专属魔法陷阱配合。"
   },
   {
     id: 83764718,
@@ -30,7 +34,9 @@ const sampleCards = [
     imageURL: "https://images.ygoprodeck.com/images/cards/83764718.jpg",
     effectText: "Target 1 monster in either GY; Special Summon it.",
     childFriendlySummary: "选择任意一方墓地中的 1 只怪兽，将其特殊召唤到场上。",
-    recommendedUsage: "适合在关键回合复活强力怪兽、补充展开资源，或者利用对手墓地中的怪兽反打。"
+    recommendedUsage: "适合在关键回合复活强力怪兽、补充展开资源，或者利用对手墓地中的怪兽反打。",
+    usageTags: ["先后手都可", "偏展开", "墓地利用"],
+    synergyNotes: "适合与高价值墓地怪兽、需要复活素材的展开路线，或能反复利用墓地资源的卡配合。"
   },
   {
     id: 44095762,
@@ -41,7 +47,9 @@ const sampleCards = [
     imageURL: "https://images.ygoprodeck.com/images/cards/44095762.jpg",
     effectText: "When an opponent's monster declares an attack: Destroy all your opponent's Attack Position monsters.",
     childFriendlySummary: "当对手怪兽宣言攻击时发动，破坏对手场上所有攻击表示怪兽。",
-    recommendedUsage: "适合先盖放等待对手进攻时再发动，用来清掉对手攻击表示怪兽并扭转战斗阶段。"
+    recommendedUsage: "适合先盖放等待对手进攻时再发动，用来清掉对手攻击表示怪兽并扭转战斗阶段。",
+    usageTags: ["偏先手", "偏防守", "反打"],
+    synergyNotes: "适合和需要拖回合的防守策略、诱导对手进入战斗阶段的布置一起使用。"
   },
   {
     id: 74677422,
@@ -52,7 +60,9 @@ const sampleCards = [
     imageURL: "https://images.ygoprodeck.com/images/cards/74677422.jpg",
     effectText: "A ferocious dragon with a deadly attack.",
     childFriendlySummary: "通常怪兽，没有效果，主要依靠 2400 攻击力进行战斗。",
-    recommendedUsage: "适合作为中高打点怪兽使用，常用于需要龙族通常怪兽素材或配合真红眼相关卡组。"
+    recommendedUsage: "适合作为中高打点怪兽使用，常用于需要龙族通常怪兽素材或配合真红眼相关卡组。",
+    usageTags: ["偏中盘", "偏进攻", "系列素材"],
+    synergyNotes: "适合与真红眼系列的复活、融合、装备或龙族支援卡配合。"
   },
   {
     id: 40640057,
@@ -63,7 +73,9 @@ const sampleCards = [
     imageURL: "https://images.ygoprodeck.com/images/cards/40640057.jpg",
     effectText: "During your opponent's turn, at damage calculation: You can discard this card; you take no battle damage from that battle.",
     childFriendlySummary: "在对手回合的伤害计算时，可以丢弃这张卡，使那次战斗造成的战斗伤害变成 0。",
-    recommendedUsage: "适合留在手牌中防守，遇到危险攻击时再丢弃，减少战斗伤害并保护自己的生命值。"
+    recommendedUsage: "适合留在手牌中防守，遇到危险攻击时再丢弃，减少战斗伤害并保护自己的生命值。",
+    usageTags: ["偏后手", "偏防守", "手坑式防护"],
+    synergyNotes: "适合和需要保护生命值、延缓战斗伤害，或依赖手牌资源进行防守的卡一起使用。"
   },
   {
     id: 72302403,
@@ -74,7 +86,9 @@ const sampleCards = [
     imageURL: "https://images.ygoprodeck.com/images/cards/72302403.jpg",
     effectText: "After this card's activation, it remains on the field, but destroy it during the End Phase of your opponent's 3rd turn. While this card is face-up on the field, your opponent's monsters cannot declare an attack.",
     childFriendlySummary: "发动后会在场上停留到对手第 3 个回合结束阶段破坏；存在期间，对手怪兽不能宣言攻击。",
-    recommendedUsage: "适合在自己需要争取时间时使用，用来拖慢对手进攻节奏，给自己留下准备资源的回合。"
+    recommendedUsage: "适合在自己需要争取时间时使用，用来拖慢对手进攻节奏，给自己留下准备资源的回合。",
+    usageTags: ["先后手都可", "偏防守", "拖回合"],
+    synergyNotes: "适合与需要多回合准备资源、布置场面或等待关键卡上手的策略配合。"
   },
   {
     id: 4206964,
@@ -85,7 +99,9 @@ const sampleCards = [
     imageURL: "https://images.ygoprodeck.com/images/cards/4206964.jpg",
     effectText: "When your opponent Normal or Flip Summons 1 monster with 1000 or more ATK: Target that monster; destroy that target.",
     childFriendlySummary: "当对手通常召唤或反转召唤 1 只攻击力 1000 以上的怪兽时发动，破坏那只怪兽。",
-    recommendedUsage: "适合提前盖放，等对手召出关键怪兽时立刻处理，打断对手正常展开。"
+    recommendedUsage: "适合提前盖放，等对手召出关键怪兽时立刻处理，打断对手正常展开。",
+    usageTags: ["偏先手", "偏解场", "打断召唤"],
+    synergyNotes: "适合和其他盖放陷阱一起形成连续干扰，优先处理依赖通常召唤起步的对手。"
   }
 ].map((card) => ({ ...card, source: "sample" }));
 
@@ -415,6 +431,16 @@ function renderDetail() {
         <h3>推荐用法</h3>
         <p>${escapeHtml(card.recommendedUsage)}</p>
       </section>
+      <section class="info-block">
+        <h3>使用定位</h3>
+        <div class="tag-row">
+          ${card.usageTags.map((tag) => `<span class="tag tag-soft">${escapeHtml(tag)}</span>`).join("")}
+        </div>
+      </section>
+      <section class="info-block">
+        <h3>常见配合方向</h3>
+        <p>${escapeHtml(card.synergyNotes)}</p>
+      </section>
     </article>
   `;
 
@@ -702,6 +728,8 @@ function mapRemoteCard(apiCard) {
     effectText,
     childFriendlySummary: summarizeEffectPoints({ name, category, typeLine, effectText }),
     recommendedUsage: summarizeRecommendedUsage({ category, typeLine, effectText }),
+    usageTags: summarizeUsageTags({ category, typeLine, effectText }),
+    synergyNotes: summarizeSynergyNotes({ category, typeLine, effectText }),
     source: "remote"
   };
 }
@@ -790,6 +818,65 @@ function summarizeRecommendedUsage({ category, typeLine, effectText }) {
   return "推荐结合当前场面决定时机，优先在能改变场面交换结果时使用。";
 }
 
+function summarizeUsageTags({ category, typeLine, effectText }) {
+  const lowered = String(effectText).toLowerCase();
+  const normalizedType = String(typeLine).toLowerCase();
+  const tags = [];
+
+  if (lowered.includes("when an opponent") || category === "陷阱") {
+    tags.push("偏先手");
+  }
+
+  if (lowered.includes("special summon") || lowered.includes("add 1")) {
+    tags.push("偏展开");
+  }
+
+  if (lowered.includes("destroy") || lowered.includes("banish") || lowered.includes("return")) {
+    tags.push("偏解场");
+  }
+
+  if (lowered.includes("battle damage") || lowered.includes("cannot attack")) {
+    tags.push("偏防守");
+  }
+
+  if (normalizedType.includes("normal monster") || lowered.includes("attack")) {
+    tags.push("偏进攻");
+  }
+
+  if (!tags.length) {
+    tags.push("先后手都可");
+  }
+
+  return [...new Set(tags)].slice(0, 3);
+}
+
+function summarizeSynergyNotes({ category, typeLine, effectText }) {
+  const lowered = String(effectText).toLowerCase();
+  const normalizedType = String(typeLine).toLowerCase();
+
+  if (lowered.includes("graveyard") || lowered.includes("gy") || lowered.includes("special summon")) {
+    return "适合与墓地利用、复活展开，或需要反复回收怪兽资源的卡配合。";
+  }
+
+  if (lowered.includes("add 1")) {
+    return "适合与需要稳定检索关键卡、围绕固定核心组件展开的策略配合。";
+  }
+
+  if (lowered.includes("destroy") || lowered.includes("negate")) {
+    return "适合与其他干扰卡搭配，形成连续压制或多段打断。";
+  }
+
+  if (category === "陷阱") {
+    return "适合与其他盖放陷阱一起使用，增强对手回合的干扰密度。";
+  }
+
+  if (normalizedType.includes("normal monster")) {
+    return "适合与通常怪兽支援、素材需求，或对应系列专属卡配合。";
+  }
+
+  return "适合结合当前卡组核心思路使用，优先与能放大这张卡收益的资源配合。";
+}
+
 function speakCard(card) {
   if (!("speechSynthesis" in window)) {
     showToast("当前浏览器不支持朗读。");
@@ -797,7 +884,7 @@ function speakCard(card) {
   }
 
   window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(`${card.localizedName}。原始介绍：${card.effectText}。推荐用法：${card.recommendedUsage}`);
+  const utterance = new SpeechSynthesisUtterance(`${card.localizedName}。原始介绍：${card.effectText}。推荐用法：${card.recommendedUsage}。使用定位：${card.usageTags.join("，")}。常见配合方向：${card.synergyNotes}`);
   utterance.lang = "zh-CN";
   utterance.rate = 0.95;
   window.speechSynthesis.speak(utterance);
