@@ -115,7 +115,7 @@ const sampleCards = [
 
 const categories = ["全部", "怪兽", "魔法", "陷阱"];
 const favoritesKey = "ygo-card-web-favorites";
-const localDataPath = "./data/cards.json";
+const localDataPath = "./data/cards.local.json";
 const initialVisibleCardCount = 48;
 const visibleCardStep = 32;
 
@@ -296,7 +296,7 @@ function renderSpotlight() {
         <p class="spotlight-kicker">Spotlight Card</p>
         <h2 class="spotlight-title">${escapeHtml(card.localizedName)}</h2>
         <p class="detail-subtitle">${escapeHtml(card.name)}</p>
-        <p class="spotlight-summary">${escapeHtml(card.translatedEffectText || card.effectText)}</p>
+        <p class="spotlight-summary">${escapeHtml(getDisplayDescription(card))}</p>
         <div class="tag-row">
           <span class="tag">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</span>
           <span class="tag tag-soft">${escapeHtml(getSourceLabel(card))}</span>
@@ -366,7 +366,7 @@ function renderList() {
             </div>
             <p class="card-meta">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</p>
             <p class="card-meta">${escapeHtml(getSourceLabel(card))}</p>
-            <p class="card-summary">${escapeHtml(card.translatedEffectText || card.effectText)}</p>
+            <p class="card-summary">${escapeHtml(getDisplayDescription(card))}</p>
             ${matchBadges ? `<div class="match-badges">${matchBadges}</div>` : ""}
           </div>
         </article>
@@ -417,12 +417,8 @@ function renderDetail() {
         <button class="secondary-button" id="random-from-detail-button">换一张随机卡</button>
       </div>
       <section class="info-block">
-        <h3>中文说明</h3>
-        <p>${escapeHtml(card.translatedEffectText || card.effectText)}</p>
-      </section>
-      <section class="info-block">
-        <h3>英文原文</h3>
-        <p>${escapeHtml(card.effectText)}</p>
+        <h3>卡片说明</h3>
+        <p>${escapeHtml(getDisplayDescription(card))}</p>
       </section>
       <section class="info-block">
         <h3>效果要点</h3>
@@ -567,6 +563,38 @@ function getSourceLabel(card) {
   return card.source === "local" ? "本地卡库" : "内置示例";
 }
 
+function getDisplayDescription(card) {
+  const translated = String(card.translatedEffectText ?? "").trim();
+  if (containsChinese(translated) && !hasTooMuchEnglish(translated)) {
+    return translated;
+  }
+
+  const regenerated = translateEffectTextToChinese(card.effectText ?? "");
+  if (containsChinese(regenerated) && !hasTooMuchEnglish(regenerated)) {
+    return regenerated;
+  }
+
+  const summary = String(card.childFriendlySummary ?? "").trim();
+  if (containsChinese(summary)) {
+    return summary;
+  }
+
+  return "这张卡暂时还没有整理出可读的中文说明。";
+}
+
+function containsChinese(text) {
+  return /[\u3400-\u9fff]/.test(String(text));
+}
+
+function hasTooMuchEnglish(text) {
+  const normalized = String(text)
+    .replace(/"[^"]*"/g, "")
+    .replace(/[A-Z]-Counters?/gi, "")
+    .replace(/\b[A-Z]{2,}\b/g, "");
+  const englishParts = normalized.match(/[A-Za-z]{3,}/g) ?? [];
+  return englishParts.length >= 4;
+}
+
 function buildMatchBadges(card) {
   const badges = [];
   const summary = `${card.effectText} ${card.childFriendlySummary}`.toLowerCase();
@@ -645,10 +673,22 @@ async function loadLocalLibrary() {
 function mapLocalCard(apiCard) {
   if (!apiCard || typeof apiCard !== "object") return null;
 
+  if (apiCard.effectText && apiCard.translatedEffectText) {
+    const translatedEffectText = containsChinese(apiCard.translatedEffectText)
+      ? apiCard.translatedEffectText
+      : translateEffectTextToChinese(apiCard.effectText);
+    return {
+      ...apiCard,
+      translatedEffectText,
+      source: "local",
+      imageURL: apiCard.imageURL || apiCard.imageLocalPath || ""
+    };
+  }
+
   const typeLine = apiCard.type ?? "";
   const category = inferCategory(typeLine);
   const effectText = apiCard.desc ?? "";
-  const imageURL = apiCard.image_url ?? "";
+  const imageURL = apiCard.imageLocalPath || apiCard.image_url || "";
   const name = apiCard.name ?? "未知卡牌";
   const localizedName = name;
 
@@ -684,14 +724,24 @@ function summarizeEffectPoints({ name, category, typeLine, effectText }) {
   if (lowered.includes("special summon")) effectParts.push("可以特殊召唤怪兽");
   if (lowered.includes("add 1")) effectParts.push("可以从卡组把指定卡加入手牌");
   if (lowered.includes("destroy")) effectParts.push("会破坏场上的卡");
+  if (lowered.includes("send 1") && (lowered.includes("graveyard") || lowered.includes("gy"))) effectParts.push("可以从卡组把怪兽送去墓地");
   if (lowered.includes("negate")) effectParts.push("可以无效对手的效果或发动");
   if (lowered.includes("draw")) effectParts.push("可以补充手牌");
   if (lowered.includes("return it to the hand") || lowered.includes("return 1") || lowered.includes("return that target")) effectParts.push("可以把卡返回手牌");
+  if (lowered.includes("return that target to the top of your deck")) effectParts.push("会把卡放回卡组最上方");
   if (lowered.includes("cannot attack")) effectParts.push("会限制怪兽攻击");
+  if (lowered.includes("cannot special summon monsters for the rest of the turn")) effectParts.push("发动后会限制后续特殊召唤");
   if (lowered.includes("battle damage")) effectParts.push("会影响战斗伤害");
   if (lowered.includes("banish")) effectParts.push("会除外卡牌");
   if (lowered.includes("gy") || lowered.includes("graveyard")) effectParts.push("效果与墓地资源有关");
   if (lowered.includes("target")) effectParts.push("发动时需要选择目标");
+  if (lowered.includes("gain") && lowered.includes("atk")) effectParts.push("会提升怪兽攻击力");
+  if (lowered.includes("set 1")) effectParts.push("可以直接盖放指定卡");
+  if (lowered.includes("equipped to a monster")) effectParts.push("效果和装备状态有关");
+  if (lowered.includes("place a-counter")) effectParts.push("会放置 A 指示物");
+  if (lowered.includes("random card from your hand")) effectParts.push("会从手牌随机选卡并处理");
+  if (lowered.includes("flip this card into face-down defense position")) effectParts.push("可以把自己变成里侧守备表示");
+  if (lowered.includes("second attack")) effectParts.push("可以在战斗阶段再次攻击");
   if (lowered.includes("cannot be destroyed") || lowered.includes("cannot target")) effectParts.push("自身不容易被效果处理");
 
   if (!effectParts.length) {
@@ -729,28 +779,59 @@ function translateEffectTextToChinese(effectText) {
     [/Must first be Special Summoned/gi, "必须先特殊召唤"],
     [/You can only use each effect of/gi, "以下各效果各回合只能使用 1 次："],
     [/You can only use this effect of/gi, "这个效果每回合只能使用 1 次："],
+    [/You can only activate 1/gi, "每回合只能发动 1 张"],
+    [/When this card is activated/gi, "这张卡发动时"],
     [/During your opponent's turn/gi, "对手回合中"],
+    [/During your Main Phase/gi, "在你的主要阶段"],
+    [/During your Standby Phase/gi, "在你的准备阶段"],
+    [/During the Main Phase/gi, "在主要阶段"],
+    [/During the Standby Phase/gi, "在准备阶段"],
     [/During your End Phase/gi, "在结束阶段"],
     [/At the start of the Damage Step/gi, "在伤害步骤开始时"],
     [/at damage calculation/gi, "在伤害计算时"],
+    [/During each Battle Phase/gi, "在每次战斗阶段"],
+    [/While this card is equipped to a monster/gi, "这张卡装备给怪兽期间"],
+    [/If this card is sent to the GY because the equipped monster is sent to the GY/gi, "如果装备怪兽被送去墓地而使这张卡被送去墓地"],
+    [/If this card in the Spell & Trap Zone is destroyed by card effect/gi, "如果魔法与陷阱区域的这张卡被卡的效果破坏"],
     [/When an opponent's monster declares an attack/gi, "对手怪兽宣言攻击时"],
     [/When your opponent Normal or Flip Summons 1 monster with 1000 or more ATK/gi, "对手通常召唤或反转召唤 1 只攻击力 1000 以上的怪兽时"],
     [/Target 1 monster in either GY/gi, "以任意一方墓地中的 1 只怪兽为对象"],
+    [/Target 1 face-up monster on the field/gi, "以场上 1 只表侧表示怪兽为对象"],
+    [/target 1 face-up monster you control/gi, "以你控制的 1 只表侧表示怪兽为对象"],
+    [/target 1 of your .*? monsters that is banished or in your GY/gi, "以你被除外或在墓地的 1 只对应怪兽为对象"],
+    [/target 1 .*? monster in your GY/gi, "以你墓地中的 1 只对应怪兽为对象"],
+    [/target 1 card in your GY/gi, "以你墓地中的 1 张卡为对象"],
+    [/target 1 card on the field/gi, "以场上 1 张卡为对象"],
     [/Target that monster/gi, "以那只怪兽为对象"],
+    [/Your opponent chooses 1 random card from your hand/gi, "对手从你的手牌随机选 1 张卡"],
+    [/then if it is a monster that can be Special Summoned/gi, "如果那张卡是可以特殊召唤的怪兽"],
+    [/Otherwise, send it to the Graveyard/gi, "否则将其送去墓地"],
+    [/activate 1 of these effects/gi, "发动以下 1 个效果"],
+    [/draw cards equal to the number of different Monster Types in your GY/gi, "抽出数量等同于你墓地中不同种族怪兽数量的卡"],
+    [/place cards from your hand on the bottom of the Deck in any order, equal to the number of cards you drew/gi, "将与抽出数量相同的手牌按任意顺序放回卡组底"],
     [/destroy that target/gi, "破坏那只怪兽"],
     [/Destroy all your opponent's Attack Position monsters/gi, "破坏对手场上所有攻击表示怪兽"],
     [/Special Summon it/gi, "将那只怪兽特殊召唤"],
     [/Special Summon this card/gi, "将这张卡特殊召唤"],
+    [/Special Summon 1/gi, "特殊召唤 1 只"],
     [/add 1/gi, "把 1 张"],
     [/from your Deck to your hand/gi, "从卡组加入手牌"],
+    [/from your Deck or GY/gi, "从卡组或墓地"],
+    [/from your hand or Deck/gi, "从手牌或卡组"],
     [/draw 1 card/gi, "抽 1 张卡"],
+    [/draw 3 cards from your Deck/gi, "从卡组抽 3 张卡"],
     [/return it to the hand/gi, "将其返回手牌"],
     [/return that target to the hand/gi, "将那张卡返回手牌"],
+    [/return that target to the top of your Deck/gi, "将那张卡放回卡组最上方"],
     [/banish this card/gi, "将这张卡除外"],
+    [/send 1 .*? monster from your Deck to the Graveyard/gi, "从卡组把 1 只对应怪兽送去墓地"],
+    [/place A-Counters on that monster equal to the Level of the sent monster/gi, "在那只怪兽上放置与送去墓地怪兽等级相同数量的 A 指示物"],
+    [/make a second attack during each Battle Phase/gi, "在每次战斗阶段可以再攻击 1 次"],
     [/GY/gi, "墓地"],
     [/Graveyard/gi, "墓地"],
     [/battle damage/gi, "战斗伤害"],
     [/cannot declare an attack/gi, "不能宣言攻击"],
+    [/cannot declare attacks/gi, "不能宣言攻击"],
     [/cannot be destroyed/gi, "不会被破坏"],
     [/cannot target/gi, "不能作为对象"],
     [/negate the activation/gi, "那次发动无效"],
@@ -769,11 +850,57 @@ function translateEffectTextToChinese(effectText) {
     translated = translated.replace(pattern, replacement);
   });
 
+  const termReplacements = [
+    [/\bYou can\b/gi, "你可以"],
+    [/\byour opponent\b/gi, "对手"],
+    [/\byour side of the field\b/gi, "你场上"],
+    [/\bunder your control\b/gi, "你控制的"],
+    [/\byou control\b/gi, "你控制的"],
+    [/\byour hand\b/gi, "你的手牌"],
+    [/\byour Deck\b/gi, "你的卡组"],
+    [/\byour GY\b/gi, "你的墓地"],
+    [/\byour Graveyard\b/gi, "你的墓地"],
+    [/\bon the field\b/gi, "场上"],
+    [/\bface-up\b/gi, "表侧表示"],
+    [/\bface-down\b/gi, "里侧表示"],
+    [/\bmonsters\b/gi, "怪兽"],
+    [/\bmonster\b/gi, "怪兽"],
+    [/\bSpell & Trap Zone\b/gi, "魔法与陷阱区域"],
+    [/\bAttack Position\b/gi, "攻击表示"],
+    [/\bDefense Position\b/gi, "守备表示"],
+    [/\bQuick-Play Spell\b/gi, "速攻魔法"],
+    [/\bQuick Effect\b/gi, "快速效果"],
+    [/\bMain Phase\b/gi, "主要阶段"],
+    [/\bStandby Phase\b/gi, "准备阶段"],
+    [/\bBattle Phase\b/gi, "战斗阶段"],
+    [/\bEnd Phase\b/gi, "结束阶段"],
+    [/\bNormal Summon(?:ed)?\b/gi, "通常召唤"],
+    [/\bFlip Summon(?:ed)?\b/gi, "反转召唤"],
+    [/\bSpecial Summon(?:ed)?\b/gi, "特殊召唤"],
+    [/\bSet\b/gi, "盖放"],
+    [/\bATK\b/gi, "攻击力"],
+    [/\bLevel\b/gi, "等级"],
+    [/\bFIRE\b/gi, "炎属性"],
+    [/\bDARK\b/gi, "暗属性"],
+    [/\bLIGHT\b/gi, "光属性"],
+    [/\bWarrior\b/gi, "战士族"],
+    [/\bFiend\b/gi, "恶魔族"],
+    [/\bDeck\b/gi, "卡组"],
+    [/\bGraveyard\b/gi, "墓地"],
+    [/\bGY\b/gi, "墓地"]
+  ];
+
+  termReplacements.forEach(([pattern, replacement]) => {
+    translated = translated.replace(pattern, replacement);
+  });
+
   translated = translated
     .replace(/;/g, "；")
     .replace(/:/g, "：")
     .replace(/,/g, "，")
-    .replace(/\./g, "。");
+    .replace(/\./g, "。")
+    .replace(/\s+/g, " ")
+    .trim();
 
   if (!/[一-龥]/.test(translated)) {
     return effect;
@@ -896,7 +1023,7 @@ function speakCard(card) {
   }
 
   window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(`${card.localizedName}。中文说明：${card.translatedEffectText || card.effectText}。推荐用法：${card.recommendedUsage}。使用定位：${card.usageTags.join("，")}。常见配合方向：${card.synergyNotes}`);
+  const utterance = new SpeechSynthesisUtterance(`${card.localizedName}。卡片说明：${getDisplayDescription(card)}。推荐用法：${card.recommendedUsage}。使用定位：${card.usageTags.join("，")}。常见配合方向：${card.synergyNotes}`);
   utterance.lang = "zh-CN";
   utterance.rate = 0.95;
   window.speechSynthesis.speak(utterance);
