@@ -1,4 +1,4 @@
-const cards = [
+const sampleCards = [
   {
     id: 89631139,
     name: "Blue-Eyes White Dragon",
@@ -79,18 +79,26 @@ const cards = [
     effectText: "When your opponent Normal or Flip Summons 1 monster with 1000 or more ATK: Target that monster; destroy that target.",
     childFriendlySummary: "这张陷阱卡像地上突然开了个坑，对手一放出厉害怪兽，就可能掉进去。"
   }
-];
+].map((card) => ({ ...card, source: "sample" }));
 
 const categories = ["全部", "怪兽", "魔法", "陷阱"];
 const favoritesKey = "ygo-card-web-favorites";
+const remoteCacheKey = "ygo-card-web-remote-cache-v1";
+const remoteCacheTTL = 1000 * 60 * 60 * 24 * 2;
+const remoteSearchMinimumLength = 2;
+const remoteSearchEndpoint = "https://db.ygoprodeck.com/api/v7/cardinfo.php";
 
 const state = {
   searchText: "",
   selectedCategory: "全部",
   favoritesOnly: false,
-  selectedCardId: cards[0]?.id ?? null,
-  spotlightCardId: cards[0]?.id ?? null,
-  favoriteIds: loadFavorites()
+  selectedCardId: sampleCards[0]?.id ?? null,
+  spotlightCardId: sampleCards[0]?.id ?? null,
+  favoriteIds: loadFavorites(),
+  remoteCards: [],
+  remoteStatus: "还没开始在线搜索。输入 2 个以上字符后，会去线上卡牌库补充结果。",
+  remoteError: "",
+  isRemoteLoading: false
 };
 
 const elements = {
@@ -104,10 +112,14 @@ const elements = {
   resultCount: document.querySelector("#result-count"),
   clearFiltersButton: document.querySelector("#clear-filters-button"),
   randomCardButton: document.querySelector("#random-card-button"),
-  speakSpotlightButton: document.querySelector("#speak-spotlight-button")
+  speakSpotlightButton: document.querySelector("#speak-spotlight-button"),
+  remoteStatus: document.querySelector("#remote-status")
 };
 
 let recognition = null;
+let remoteSearchTimer = null;
+let activeRemoteRequestToken = 0;
+const remoteCache = loadRemoteCache();
 
 setup();
 
@@ -122,6 +134,7 @@ function setup() {
 function attachEvents() {
   elements.searchInput.addEventListener("input", (event) => {
     state.searchText = event.target.value;
+    scheduleRemoteSearch();
     keepSelectionVisible();
     render();
   });
@@ -133,9 +146,13 @@ function attachEvents() {
   });
 
   elements.clearFiltersButton.addEventListener("click", () => {
+    window.clearTimeout(remoteSearchTimer);
     state.searchText = "";
     state.selectedCategory = "全部";
     state.favoritesOnly = false;
+    state.remoteCards = [];
+    state.remoteError = "";
+    state.remoteStatus = "当前展示的是内置示例卡牌。";
     syncControls();
     keepSelectionVisible();
     render();
@@ -172,6 +189,7 @@ function setupVoiceRecognition() {
     if (!transcript) return;
     state.searchText = transcript;
     elements.searchInput.value = transcript;
+    scheduleRemoteSearch();
     keepSelectionVisible();
     render();
     showToast(`已识别：${transcript}`);
@@ -206,9 +224,27 @@ function renderCategoryFilters() {
 
 function render() {
   renderCategoryFilters();
+  renderRemoteStatus();
   renderSpotlight();
   renderList();
   renderDetail();
+}
+
+function renderRemoteStatus() {
+  const query = state.searchText.trim();
+  const helpText = query.length < remoteSearchMinimumLength
+    ? `输入 ${remoteSearchMinimumLength} 个以上字符后，会去线上卡牌库补充结果。`
+    : "当前会优先展示本地示例卡，同时补充线上检索结果。";
+
+  const loadingText = state.isRemoteLoading ? "正在搜索线上卡牌库..." : "";
+  const errorText = state.remoteError ? ` ${state.remoteError}` : "";
+
+  elements.remoteStatus.innerHTML = `
+    <strong>线上卡牌库：</strong>${escapeHtml(state.remoteStatus)}
+    ${loadingText ? `<div>${escapeHtml(loadingText)}</div>` : ""}
+    ${errorText ? `<div>${escapeHtml(errorText)}</div>` : ""}
+    <div>${escapeHtml(helpText)}</div>
+  `;
 }
 
 function renderSpotlight() {
@@ -231,7 +267,10 @@ function renderSpotlight() {
         <h2 class="spotlight-title">${escapeHtml(card.localizedName)}</h2>
         <p class="detail-subtitle">${escapeHtml(card.name)}</p>
         <p class="spotlight-summary">${escapeHtml(card.childFriendlySummary)}</p>
-        <span class="tag">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</span>
+        <div class="tag-row">
+          <span class="tag">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</span>
+          <span class="tag tag-soft">${escapeHtml(getSourceLabel(card))}</span>
+        </div>
         <div class="spotlight-actions">
           <button class="secondary-button" data-action="select-spotlight">查看详情</button>
           <button class="secondary-button" data-action="favorite-spotlight">${isFavorite(card.id) ? "取消收藏" : "收藏这张卡"}</button>
@@ -252,10 +291,23 @@ function renderSpotlight() {
 
 function renderList() {
   const filteredCards = getFilteredCards();
-  elements.resultCount.textContent = `共找到 ${filteredCards.length} 张卡牌`;
+  const onlineCount = filteredCards.filter((card) => card.source === "remote").length;
+  const sampleCount = filteredCards.length - onlineCount;
+  elements.resultCount.textContent = `共找到 ${filteredCards.length} 张卡牌，其中内置 ${sampleCount} 张，线上 ${onlineCount} 张`;
+
+  if (state.isRemoteLoading) {
+    elements.cardList.innerHTML = `
+      <div class="list-loading">
+        <strong>正在补充线上结果...</strong>
+        <div class="list-subtext">本地示例卡已经能用，线上卡牌会在搜索完成后自动出现。</div>
+      </div>
+    `;
+  } else {
+    elements.cardList.innerHTML = "";
+  }
 
   if (!filteredCards.length) {
-    elements.cardList.innerHTML = `
+    elements.cardList.innerHTML += `
       <div class="empty-list">
         <h3>没有找到卡牌</h3>
         <p>试试更短的名称、不同类型，或者取消收藏筛选。</p>
@@ -264,7 +316,7 @@ function renderList() {
     return;
   }
 
-  elements.cardList.innerHTML = filteredCards
+  elements.cardList.innerHTML += filteredCards
     .map((card) => {
       const activeClass = card.id === state.selectedCardId ? " active" : "";
       return `
@@ -279,6 +331,7 @@ function renderList() {
               ${isFavorite(card.id) ? '<span class="star" aria-label="已收藏">★</span>' : ""}
             </div>
             <p class="card-meta">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</p>
+            <p class="card-meta">${escapeHtml(getSourceLabel(card))}</p>
             <p class="card-summary">${escapeHtml(card.childFriendlySummary)}</p>
           </div>
         </article>
@@ -315,7 +368,10 @@ function renderDetail() {
         <div>
           <h2 class="detail-title">${escapeHtml(card.localizedName)}</h2>
           <p class="detail-subtitle">${escapeHtml(card.name)}</p>
-          <span class="tag">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</span>
+          <div class="tag-row">
+            <span class="tag">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</span>
+            <span class="tag tag-soft">${escapeHtml(getSourceLabel(card))}</span>
+          </div>
         </div>
         <button class="favorite-button" id="favorite-button">${isFavorite(card.id) ? "取消收藏" : "收藏"}</button>
       </div>
@@ -352,7 +408,7 @@ function renderDetail() {
 function getFilteredCards() {
   const query = state.searchText.trim().toLowerCase();
 
-  return cards.filter((card) => {
+  return getAllCards().filter((card) => {
     const matchesCategory = state.selectedCategory === "全部" || card.category === state.selectedCategory;
     const matchesFavorites = !state.favoritesOnly || isFavorite(card.id);
     const matchesText =
@@ -377,7 +433,7 @@ function getSelectedCard() {
 
 function getSpotlightCard() {
   const filteredCards = getFilteredCards();
-  return cards.find((card) => card.id === state.spotlightCardId && filteredCards.some((item) => item.id === card.id)) ?? filteredCards[0] ?? null;
+  return getAllCards().find((card) => card.id === state.spotlightCardId && filteredCards.some((item) => item.id === card.id)) ?? filteredCards[0] ?? null;
 }
 
 function keepSelectionVisible() {
@@ -396,6 +452,18 @@ function chooseRandomSpotlight() {
   if (!filteredCards.length) return;
   const randomCard = filteredCards[Math.floor(Math.random() * filteredCards.length)];
   state.spotlightCardId = randomCard.id;
+}
+
+function getAllCards() {
+  const merged = new Map();
+  [...sampleCards, ...state.remoteCards].forEach((card) => {
+    merged.set(card.id, card);
+  });
+  return [...merged.values()];
+}
+
+function getSourceLabel(card) {
+  return card.source === "remote" ? "在线卡库" : "内置示例";
 }
 
 function loadFavorites() {
@@ -425,6 +493,143 @@ function toggleFavorite(cardId) {
   render();
 }
 
+function loadRemoteCache() {
+  try {
+    const raw = localStorage.getItem(remoteCacheKey);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveRemoteCache() {
+  localStorage.setItem(remoteCacheKey, JSON.stringify(remoteCache));
+}
+
+function scheduleRemoteSearch() {
+  window.clearTimeout(remoteSearchTimer);
+  const trimmedQuery = state.searchText.trim();
+
+  if (trimmedQuery.length < remoteSearchMinimumLength) {
+    state.remoteCards = [];
+    state.isRemoteLoading = false;
+    state.remoteError = "";
+    state.remoteStatus = "当前展示的是内置示例卡牌。";
+    return;
+  }
+
+  remoteSearchTimer = window.setTimeout(() => {
+    performRemoteSearch(trimmedQuery);
+  }, 350);
+}
+
+async function performRemoteSearch(query) {
+  const requestToken = ++activeRemoteRequestToken;
+  state.isRemoteLoading = true;
+  state.remoteError = "";
+  state.remoteStatus = `正在为“${query}”搜索线上卡牌...`;
+  render();
+
+  const cacheKey = buildRemoteCacheKey(query);
+  const cachedEntry = remoteCache[cacheKey];
+  if (cachedEntry && Date.now() - cachedEntry.timestamp < remoteCacheTTL) {
+    if (requestToken !== activeRemoteRequestToken) return;
+    state.remoteCards = cachedEntry.cards;
+    state.isRemoteLoading = false;
+    state.remoteStatus = `已从本地缓存恢复 ${cachedEntry.cards.length} 张线上卡牌。`;
+    keepSelectionVisible();
+    render();
+    return;
+  }
+
+  try {
+    const url = new URL(remoteSearchEndpoint);
+    url.searchParams.set("fname", query);
+    const response = await fetch(url.toString());
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const payload = await response.json();
+    const remoteCards = Array.isArray(payload.data)
+      ? payload.data.slice(0, 40).map(mapRemoteCard).filter(Boolean)
+      : [];
+
+    remoteCache[cacheKey] = {
+      timestamp: Date.now(),
+      cards: remoteCards
+    };
+    saveRemoteCache();
+
+    if (requestToken !== activeRemoteRequestToken) return;
+    state.remoteCards = remoteCards;
+    state.isRemoteLoading = false;
+    state.remoteStatus = remoteCards.length
+      ? `线上卡牌库补充了 ${remoteCards.length} 张相关卡牌。`
+      : "线上卡牌库没有返回更多结果，当前只显示本地示例卡。";
+    keepSelectionVisible();
+    render();
+  } catch (error) {
+    if (requestToken !== activeRemoteRequestToken) return;
+    state.remoteCards = [];
+    state.isRemoteLoading = false;
+    state.remoteError = "线上搜索暂时失败，先继续用内置卡牌。";
+    state.remoteStatus = "没能连上线上卡牌库。";
+    keepSelectionVisible();
+    render();
+  }
+}
+
+function buildRemoteCacheKey(query) {
+  return query.trim().toLowerCase();
+}
+
+function mapRemoteCard(apiCard) {
+  if (!apiCard || typeof apiCard !== "object") return null;
+
+  const typeLine = apiCard.type ?? "";
+  const category = inferCategory(typeLine);
+  const effectText = apiCard.desc ?? "";
+  const imageURL = apiCard.card_images?.[0]?.image_url ?? "";
+  const name = apiCard.name ?? "未知卡牌";
+  const localizedName = name;
+
+  return {
+    id: Number(apiCard.id),
+    name,
+    localizedName,
+    category,
+    typeLine,
+    imageURL,
+    effectText,
+    childFriendlySummary: summarizeCardForKids({ name, category, typeLine, effectText }),
+    source: "remote"
+  };
+}
+
+function inferCategory(typeLine) {
+  const normalized = String(typeLine).toLowerCase();
+  if (normalized.includes("spell")) return "魔法";
+  if (normalized.includes("trap")) return "陷阱";
+  return "怪兽";
+}
+
+function summarizeCardForKids({ name, category, typeLine, effectText }) {
+  const shortEffect = String(effectText).replace(/\s+/g, " ").trim();
+  const safeEffect = shortEffect.length > 92 ? `${shortEffect.slice(0, 92)}...` : shortEffect;
+
+  if (category === "怪兽") {
+    return `${name} 是一张${typeLine || "怪兽卡"}。简单理解，它是在场上负责战斗或帮忙出招的角色。${safeEffect}`;
+  }
+
+  if (category === "魔法") {
+    return `${name} 是一张魔法卡。它更像突然施展出来的法术，用来帮自己、限制对手，或者改变战局。${safeEffect}`;
+  }
+
+  return `${name} 是一张陷阱卡。它通常会先埋伏起来，等合适的时候再跳出来影响战斗。${safeEffect}`;
+}
+
 function speakCard(card) {
   if (!("speechSynthesis" in window)) {
     showToast("当前浏览器不支持朗读。");
@@ -444,11 +649,15 @@ function syncControls() {
 }
 
 function showToast(message) {
+  showToastWithTone(message, "default");
+}
+
+function showToastWithTone(message, tone) {
   const existing = document.querySelector(".status-toast");
   existing?.remove();
 
   const toast = document.createElement("div");
-  toast.className = "status-toast";
+  toast.className = `status-toast${tone === "error" ? " is-error" : ""}`;
   toast.textContent = message;
   document.body.appendChild(toast);
 

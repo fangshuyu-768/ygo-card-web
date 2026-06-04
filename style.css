@@ -255,6 +255,21 @@ h1 {
   margin-bottom: 0;
 }
 
+.remote-status {
+  margin-top: 16px;
+  min-height: 52px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.remote-status strong {
+  color: var(--ink);
+}
+
 .detail-panel {
   overflow: hidden;
 }
@@ -313,6 +328,17 @@ h1 {
   font-weight: 700;
 }
 
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.tag-soft {
+  background: rgba(125, 173, 214, 0.14);
+  color: #235274;
+}
+
 .favorite-button {
   min-width: 96px;
   padding: 11px 16px;
@@ -361,6 +387,13 @@ h1 {
 .card-list {
   display: grid;
   gap: 14px;
+}
+
+.list-loading {
+  padding: 18px 20px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(255, 246, 232, 0.98), rgba(255, 255, 255, 0.94));
+  border: 1px solid rgba(180, 74, 8, 0.15);
 }
 
 .list-card {
@@ -454,6 +487,10 @@ h1 {
   background: rgba(29, 27, 26, 0.88);
   color: white;
   box-shadow: 0 16px 28px rgba(0, 0, 0, 0.2);
+}
+
+.status-toast.is-error {
+  background: rgba(130, 32, 20, 0.94);
 }
 
 @media (max-width: 1200px) {
