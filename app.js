@@ -7,7 +7,7 @@ const sampleCards = [
     typeLine: "Normal Monster",
     imageURL: "https://images.ygoprodeck.com/images/cards/89631139.jpg",
     effectText: "This legendary dragon is a powerful engine of destruction.",
-    childFriendlySummary: "这是一只很厉害的大龙，攻击力很高，适合给小朋友介绍什么叫强力怪兽。"
+    childFriendlySummary: "通常怪兽，没有效果，主要依靠 3000 攻击力和 2500 守备力进行战斗。"
   },
   {
     id: 46986414,
@@ -17,7 +17,7 @@ const sampleCards = [
     typeLine: "Normal Monster",
     imageURL: "https://images.ygoprodeck.com/images/cards/46986414.jpg",
     effectText: "The ultimate wizard in terms of attack and defense.",
-    childFriendlySummary: "这是经典魔法师怪兽，像会施法的勇士，适合讲解魔法师风格的卡牌。"
+    childFriendlySummary: "通常怪兽，没有效果，主要作为高攻击力的经典怪兽使用。"
   },
   {
     id: 83764718,
@@ -27,7 +27,7 @@ const sampleCards = [
     typeLine: "Normal Spell Card",
     imageURL: "https://images.ygoprodeck.com/images/cards/83764718.jpg",
     effectText: "Target 1 monster in either GY; Special Summon it.",
-    childFriendlySummary: "这张魔法卡可以把已经退场的怪兽重新叫回来，就像把队友请回战场。"
+    childFriendlySummary: "选择任意一方墓地中的 1 只怪兽，将其特殊召唤到场上。"
   },
   {
     id: 44095762,
@@ -37,7 +37,7 @@ const sampleCards = [
     typeLine: "Normal Trap Card",
     imageURL: "https://images.ygoprodeck.com/images/cards/44095762.jpg",
     effectText: "When an opponent's monster declares an attack: Destroy all your opponent's Attack Position monsters.",
-    childFriendlySummary: "这张陷阱卡会在对手冲过来时发动，把对面正在攻击的怪兽一起挡回去。"
+    childFriendlySummary: "当对手怪兽宣言攻击时发动，破坏对手场上所有攻击表示怪兽。"
   },
   {
     id: 74677422,
@@ -47,7 +47,7 @@ const sampleCards = [
     typeLine: "Normal Monster",
     imageURL: "https://images.ygoprodeck.com/images/cards/74677422.jpg",
     effectText: "A ferocious dragon with a deadly attack.",
-    childFriendlySummary: "这是一只很帅的黑龙，适合给小朋友介绍不同龙族怪兽的风格。"
+    childFriendlySummary: "通常怪兽，没有效果，主要依靠 2400 攻击力进行战斗。"
   },
   {
     id: 40640057,
@@ -57,7 +57,7 @@ const sampleCards = [
     typeLine: "Effect Monster",
     imageURL: "https://images.ygoprodeck.com/images/cards/40640057.jpg",
     effectText: "During your opponent's turn, at damage calculation: You can discard this card; you take no battle damage from that battle.",
-    childFriendlySummary: "这只小怪兽很可爱，虽然不大，但能在危险时帮你挡一下，是保护型卡牌。"
+    childFriendlySummary: "在对手回合的伤害计算时，可以丢弃这张卡，使那次战斗造成的战斗伤害变成 0。"
   },
   {
     id: 72302403,
@@ -67,7 +67,7 @@ const sampleCards = [
     typeLine: "Normal Spell Card",
     imageURL: "https://images.ygoprodeck.com/images/cards/72302403.jpg",
     effectText: "After this card's activation, it remains on the field, but destroy it during the End Phase of your opponent's 3rd turn. While this card is face-up on the field, your opponent's monsters cannot declare an attack.",
-    childFriendlySummary: "这张魔法卡像三把发光的剑站在前面，让对手先别打过来，帮自己争取时间。"
+    childFriendlySummary: "发动后会在场上停留到对手第 3 个回合结束阶段破坏；存在期间，对手怪兽不能宣言攻击。"
   },
   {
     id: 4206964,
@@ -77,7 +77,7 @@ const sampleCards = [
     typeLine: "Normal Trap Card",
     imageURL: "https://images.ygoprodeck.com/images/cards/4206964.jpg",
     effectText: "When your opponent Normal or Flip Summons 1 monster with 1000 or more ATK: Target that monster; destroy that target.",
-    childFriendlySummary: "这张陷阱卡像地上突然开了个坑，对手一放出厉害怪兽，就可能掉进去。"
+    childFriendlySummary: "当对手通常召唤或反转召唤 1 只攻击力 1000 以上的怪兽时发动，破坏那只怪兽。"
   }
 ].map((card) => ({ ...card, source: "sample" }));
 
@@ -204,7 +204,7 @@ function setupVoiceRecognition() {
   });
 
   recognition.addEventListener("error", () => {
-    showToast("语音输入暂时不可用，可以直接用系统键盘听写。");
+    showToast("语音输入暂时不可用，可以直接用系统语音输入。");
   });
 
   elements.voiceSearchButton.addEventListener("click", () => {
@@ -275,7 +275,7 @@ function renderSpotlight() {
         <p class="spotlight-kicker">Spotlight Card</p>
         <h2 class="spotlight-title">${escapeHtml(card.localizedName)}</h2>
         <p class="detail-subtitle">${escapeHtml(card.name)}</p>
-        <p class="spotlight-summary">${escapeHtml(card.childFriendlySummary)}</p>
+        <p class="spotlight-summary">${escapeHtml(card.effectText)}</p>
         <div class="tag-row">
           <span class="tag">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</span>
           <span class="tag tag-soft">${escapeHtml(getSourceLabel(card))}</span>
@@ -345,7 +345,7 @@ function renderList() {
             </div>
             <p class="card-meta">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</p>
             <p class="card-meta">${escapeHtml(getSourceLabel(card))}</p>
-            <p class="card-summary">${escapeHtml(card.childFriendlySummary)}</p>
+            <p class="card-summary">${escapeHtml(card.effectText)}</p>
             ${matchBadges ? `<div class="match-badges">${matchBadges}</div>` : ""}
           </div>
         </article>
@@ -396,12 +396,12 @@ function renderDetail() {
         <button class="secondary-button" id="random-from-detail-button">换一张随机卡</button>
       </div>
       <section class="info-block">
-        <h3>这张卡是做什么的</h3>
-        <p>${escapeHtml(card.childFriendlySummary)}</p>
+        <h3>原始介绍</h3>
+        <p>${escapeHtml(card.effectText)}</p>
       </section>
       <section class="info-block">
-        <h3>原始效果说明</h3>
-        <p>${escapeHtml(card.effectText)}</p>
+        <h3>效果要点</h3>
+        <p>${escapeHtml(card.childFriendlySummary)}</p>
       </section>
     </article>
   `;
@@ -533,7 +533,7 @@ function getSourceLabel(card) {
 
 function buildMatchBadges(card) {
   const badges = [];
-  const summary = `${card.childFriendlySummary} ${card.effectText}`.toLowerCase();
+  const summary = `${card.effectText} ${card.childFriendlySummary}`.toLowerCase();
 
   if (summary.includes("destroy")) badges.push("偏破坏");
   if (summary.includes("special summon")) badges.push("会召回伙伴");
@@ -688,7 +688,7 @@ function mapRemoteCard(apiCard) {
     typeLine,
     imageURL,
     effectText,
-    childFriendlySummary: summarizeCardForKids({ name, category, typeLine, effectText }),
+    childFriendlySummary: summarizeEffectPoints({ name, category, typeLine, effectText }),
     source: "remote"
   };
 }
@@ -700,61 +700,33 @@ function inferCategory(typeLine) {
   return "怪兽";
 }
 
-function summarizeCardForKids({ name, category, typeLine, effectText }) {
+function summarizeEffectPoints({ name, category, typeLine, effectText }) {
   const effect = String(effectText).replace(/\s+/g, " ").trim();
   const lowered = effect.toLowerCase();
   const effectParts = [];
 
-  if (lowered.includes("special summon")) effectParts.push("能把怪兽特别叫上场");
-  if (lowered.includes("add 1")) effectParts.push("能从卡组找来需要的卡");
+  if (lowered.includes("special summon")) effectParts.push("可以特殊召唤怪兽");
+  if (lowered.includes("add 1")) effectParts.push("可以从卡组把指定卡加入手牌");
   if (lowered.includes("destroy")) effectParts.push("会破坏场上的卡");
-  if (lowered.includes("negate")) effectParts.push("能打断或无效化对手动作");
-  if (lowered.includes("draw")) effectParts.push("能帮自己多抽卡");
-  if (lowered.includes("return it to the hand") || lowered.includes("return 1") || lowered.includes("return that target")) effectParts.push("会把卡弹回手上");
-  if (lowered.includes("cannot attack")) effectParts.push("会限制对手进攻");
-  if (lowered.includes("battle damage")) effectParts.push("和战斗伤害有关");
-  if (lowered.includes("banish")) effectParts.push("会把卡直接除外");
-  if (lowered.includes("gy") || lowered.includes("graveyard")) effectParts.push("会和墓地资源互动");
-  if (lowered.includes("target")) effectParts.push("发动时通常要先选目标");
-  if (lowered.includes("cannot be destroyed") || lowered.includes("cannot target")) effectParts.push("自己比较不容易被处理掉");
+  if (lowered.includes("negate")) effectParts.push("可以无效对手的效果或发动");
+  if (lowered.includes("draw")) effectParts.push("可以补充手牌");
+  if (lowered.includes("return it to the hand") || lowered.includes("return 1") || lowered.includes("return that target")) effectParts.push("可以把卡返回手牌");
+  if (lowered.includes("cannot attack")) effectParts.push("会限制怪兽攻击");
+  if (lowered.includes("battle damage")) effectParts.push("会影响战斗伤害");
+  if (lowered.includes("banish")) effectParts.push("会除外卡牌");
+  if (lowered.includes("gy") || lowered.includes("graveyard")) effectParts.push("效果与墓地资源有关");
+  if (lowered.includes("target")) effectParts.push("发动时需要选择目标");
+  if (lowered.includes("cannot be destroyed") || lowered.includes("cannot target")) effectParts.push("自身不容易被效果处理");
 
-  const uniqueParts = [...new Set(effectParts)].slice(0, 3);
-  const summaryCore = uniqueParts.length
-    ? `它大致可以理解成：${uniqueParts.join("，")}。`
-    : "它主要是用来帮助自己推进战局，或者阻止对手顺利出招。";
-
-  const flavor = buildKidFriendlyFlavor(name, category, typeLine, lowered);
-  return `${flavor}${summaryCore}`;
-}
-
-function buildKidFriendlyFlavor(name, category, typeLine, loweredEffect) {
-  const loweredName = String(name).toLowerCase();
-
-  if (loweredName.includes("dragon")) {
-    return `${name} 给人的感觉像一条很能打的大龙，适合当作场上的主力角色。`;
-  }
-
-  if (loweredName.includes("magician") || loweredName.includes("wizard") || loweredName.includes("spell")) {
-    return `${name} 比较像会施法的角色，重点常常不是硬碰硬，而是靠效果改变局面。`;
-  }
-
-  if (loweredName.includes("kuriboh")) {
-    return `${name} 看起来像小帮手类型的卡，往往是在关键时刻出来保护自己。`;
-  }
-
-  if (category === "怪兽") {
-    if (loweredEffect.includes("fusion") || String(typeLine).toLowerCase().includes("fusion")) {
-      return `${name} 是一张合体后更强的怪兽卡，像把几个角色力量合在一起。`;
+  if (!effectParts.length) {
+    if (category === "怪兽" && String(typeLine).toLowerCase().includes("normal")) {
+      return "通常怪兽，没有额外效果，主要依靠攻击力、守备力和召唤条件。";
     }
 
-    return `${name} 是一张怪兽卡，可以把它想成站在前线战斗或帮忙出招的角色。`;
+    return "这张卡的效果描述比较偏规则文本，建议结合原始介绍逐句查看。";
   }
 
-  if (category === "魔法") {
-    return `${name} 是一张魔法卡，比较像突然施展出来的法术，用来帮助自己或限制对手。`;
-  }
-
-  return `${name} 是一张陷阱卡，通常会先埋伏起来，等到合适时机再跳出来影响战斗。`;
+  return `效果重点：${[...new Set(effectParts)].slice(0, 4).join("；")}。`;
 }
 
 function speakCard(card) {
@@ -764,7 +736,7 @@ function speakCard(card) {
   }
 
   window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(`${card.localizedName}。${card.childFriendlySummary}`);
+  const utterance = new SpeechSynthesisUtterance(`${card.localizedName}。${card.effectText}`);
   utterance.lang = "zh-CN";
   utterance.rate = 0.95;
   window.speechSynthesis.speak(utterance);
