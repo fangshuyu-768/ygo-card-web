@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>游戏王卡牌介绍</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Yu-Gi-Oh! Card Storybook</p>
+          <h1>游戏王卡牌介绍</h1>
+          <p class="hero-text">
+            给你和小朋友一起看的卡牌讲解网页。可以搜索、分类、收藏、随机抽卡，还能把卡牌名称和作用朗读出来。
+          </p>
+          <div class="hero-actions">
+            <button id="random-card-button" class="primary-button">随机讲解一张</button>
+            <button id="speak-spotlight-button" class="secondary-button">朗读这张卡</button>
+          </div>
+        </div>
+
+        <section class="spotlight-card" id="spotlight-card" aria-live="polite"></section>
+      </header>
+
+      <main class="layout">
+        <section class="panel controls-panel">
+          <div class="panel-header">
+            <h2>查找卡牌</h2>
+            <p>支持打字，也可以直接用系统键盘的语音输入。</p>
+          </div>
+
+          <label class="field">
+            <span>名称或作用</span>
+            <div class="search-row">
+              <input
+                id="search-input"
+                type="search"
+                placeholder="例如：青眼白龙、保护、复活"
+                autocomplete="off"
+              />
+              <button id="voice-search-button" class="icon-button" type="button" title="浏览器语音输入">
+                🎤
+              </button>
+            </div>
+          </label>
+
+          <fieldset class="field">
+            <legend>卡牌类型</legend>
+            <div class="filter-pills" id="category-filters"></div>
+          </fieldset>
+
+          <label class="checkbox-row">
+            <input id="favorites-only-checkbox" type="checkbox" />
+            <span>只看收藏卡牌</span>
+          </label>
+
+          <div class="tips">
+            <p>小提示：在 iPad 上点搜索框后，可以直接用系统键盘的听写功能输入卡牌名称。</p>
+          </div>
+        </section>
+
+        <section class="panel detail-panel" id="detail-panel">
+          <div class="empty-detail">
+            <h2>选择一张卡牌</h2>
+            <p>点开左侧列表后，这里会显示大图、介绍和朗读按钮。</p>
+          </div>
+        </section>
+
+        <section class="panel list-panel">
+          <div class="panel-header list-header">
+            <div>
+              <h2>卡牌列表</h2>
+              <p id="result-count">正在准备卡牌...</p>
+            </div>
+            <button id="clear-filters-button" class="ghost-button">清空筛选</button>
+          </div>
+
+          <div class="card-list" id="card-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
