@@ -115,12 +115,9 @@ const sampleCards = [
 
 const categories = ["全部", "怪兽", "魔法", "陷阱"];
 const favoritesKey = "ygo-card-web-favorites";
-const remoteCacheKey = "ygo-card-web-remote-cache-v1";
-const remoteCacheTTL = 1000 * 60 * 60 * 24 * 2;
-const remoteSearchMinimumLength = 2;
-const remoteSearchEndpoint = "https://db.ygoprodeck.com/api/v7/cardinfo.php";
-const initialVisibleCardCount = 14;
-const visibleCardStep = 12;
+const localDataPath = "./data/cards.json";
+const initialVisibleCardCount = 48;
+const visibleCardStep = 32;
 
 const state = {
   searchText: "",
@@ -129,10 +126,10 @@ const state = {
   selectedCardId: sampleCards[0]?.id ?? null,
   spotlightCardId: sampleCards[0]?.id ?? null,
   favoriteIds: loadFavorites(),
-  remoteCards: [],
-  remoteStatus: "还没开始在线搜索。输入 2 个以上字符后，会去线上卡牌库补充结果。",
-  remoteError: "",
-  isRemoteLoading: false,
+  localCards: [],
+  libraryStatus: "正在加载本地卡牌库...",
+  libraryError: "",
+  isLibraryLoading: true,
   visibleCardCount: initialVisibleCardCount
 };
 
@@ -153,10 +150,7 @@ const elements = {
 };
 
 let recognition = null;
-let remoteSearchTimer = null;
-let activeRemoteRequestToken = 0;
 let loadMoreObserver = null;
-const remoteCache = loadRemoteCache();
 
 setup();
 
@@ -166,13 +160,13 @@ function setup() {
   setupVoiceRecognition();
   syncControls();
   render();
+  loadLocalLibrary();
 }
 
 function attachEvents() {
   elements.searchInput.addEventListener("input", (event) => {
     state.searchText = event.target.value;
     state.visibleCardCount = initialVisibleCardCount;
-    scheduleRemoteSearch();
     keepSelectionVisible();
     render();
   });
@@ -185,13 +179,9 @@ function attachEvents() {
   });
 
   elements.clearFiltersButton.addEventListener("click", () => {
-    window.clearTimeout(remoteSearchTimer);
     state.searchText = "";
     state.selectedCategory = "全部";
     state.favoritesOnly = false;
-    state.remoteCards = [];
-    state.remoteError = "";
-    state.remoteStatus = "当前展示的是内置示例卡牌。";
     state.visibleCardCount = initialVisibleCardCount;
     syncControls();
     keepSelectionVisible();
@@ -272,16 +262,15 @@ function render() {
 }
 
 function renderRemoteStatus() {
-  const query = state.searchText.trim();
-  const helpText = query.length < remoteSearchMinimumLength
-    ? `输入 ${remoteSearchMinimumLength} 个以上字符后，会去线上卡牌库补充结果。`
-    : "当前会优先展示本地示例卡，同时补充线上检索结果。";
-
-  const loadingText = state.isRemoteLoading ? "正在搜索线上卡牌库..." : "";
-  const errorText = state.remoteError ? ` ${state.remoteError}` : "";
+  const totalCards = getAllCards().length;
+  const loadingText = state.isLibraryLoading ? "正在读取仓库里的静态卡牌数据..." : "";
+  const errorText = state.libraryError ? ` ${state.libraryError}` : "";
+  const helpText = totalCards
+    ? `当前本地卡牌库共有 ${totalCards} 张卡。搜索和筛选都基于本地数据完成。`
+    : "当前还没有读到本地卡牌库，先用内置示例卡兜底。";
 
   elements.remoteStatus.innerHTML = `
-    <strong>线上卡牌库：</strong>${escapeHtml(state.remoteStatus)}
+    <strong>本地卡牌库：</strong>${escapeHtml(state.libraryStatus)}
     ${loadingText ? `<div>${escapeHtml(loadingText)}</div>` : ""}
     ${errorText ? `<div>${escapeHtml(errorText)}</div>` : ""}
     <div>${escapeHtml(helpText)}</div>
@@ -332,16 +321,16 @@ function renderSpotlight() {
 
 function renderList() {
   const filteredCards = getFilteredCards();
-  const onlineCount = filteredCards.filter((card) => card.source === "remote").length;
-  const sampleCount = filteredCards.length - onlineCount;
-  elements.resultCount.textContent = `共找到 ${filteredCards.length} 张卡牌，其中内置 ${sampleCount} 张，线上 ${onlineCount} 张`;
+  const localCount = filteredCards.filter((card) => card.source === "local").length;
+  const sampleCount = filteredCards.length - localCount;
+  elements.resultCount.textContent = `共找到 ${filteredCards.length} 张卡牌，其中本地卡库 ${localCount} 张，内置示例 ${sampleCount} 张`;
   const visibleCards = filteredCards.slice(0, state.visibleCardCount);
 
-  if (state.isRemoteLoading) {
+  if (state.isLibraryLoading) {
     elements.cardList.innerHTML = `
       <div class="list-loading">
-        <strong>正在补充线上结果...</strong>
-        <div class="list-subtext">本地示例卡已经能用，线上卡牌会在搜索完成后自动出现。</div>
+        <strong>正在加载本地卡牌库...</strong>
+        <div class="list-subtext">内置示例卡已经能用，本地卡牌库载入后会自动替换成更多卡片。</div>
       </div>
     `;
   } else {
@@ -571,15 +560,11 @@ function loadMoreCards() {
 }
 
 function getAllCards() {
-  const merged = new Map();
-  [...sampleCards, ...state.remoteCards].forEach((card) => {
-    merged.set(card.id, card);
-  });
-  return [...merged.values()];
+  return state.localCards.length ? state.localCards : sampleCards;
 }
 
 function getSourceLabel(card) {
-  return card.source === "remote" ? "在线卡库" : "内置示例";
+  return card.source === "local" ? "本地卡库" : "内置示例";
 }
 
 function buildMatchBadges(card) {
@@ -626,108 +611,44 @@ function toggleFavorite(cardId) {
   render();
 }
 
-function loadRemoteCache() {
-  try {
-    const raw = localStorage.getItem(remoteCacheKey);
-    const parsed = raw ? JSON.parse(raw) : {};
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveRemoteCache() {
-  localStorage.setItem(remoteCacheKey, JSON.stringify(remoteCache));
-}
-
-function scheduleRemoteSearch() {
-  window.clearTimeout(remoteSearchTimer);
-  const trimmedQuery = state.searchText.trim();
-
-  if (trimmedQuery.length < remoteSearchMinimumLength) {
-    state.remoteCards = [];
-    state.isRemoteLoading = false;
-    state.remoteError = "";
-    state.remoteStatus = "当前展示的是内置示例卡牌。";
-    return;
-  }
-
-  remoteSearchTimer = window.setTimeout(() => {
-    performRemoteSearch(trimmedQuery);
-  }, 350);
-}
-
-async function performRemoteSearch(query) {
-  const requestToken = ++activeRemoteRequestToken;
-  state.isRemoteLoading = true;
-  state.remoteError = "";
-  state.remoteStatus = `正在为“${query}”搜索线上卡牌...`;
+async function loadLocalLibrary() {
+  state.isLibraryLoading = true;
+  state.libraryError = "";
+  state.libraryStatus = "正在加载本地卡牌库...";
   render();
 
-  const cacheKey = buildRemoteCacheKey(query);
-  const cachedEntry = remoteCache[cacheKey];
-  if (cachedEntry && Date.now() - cachedEntry.timestamp < remoteCacheTTL) {
-    if (requestToken !== activeRemoteRequestToken) return;
-    state.remoteCards = cachedEntry.cards;
-    state.isRemoteLoading = false;
-    state.remoteStatus = `已从本地缓存恢复 ${cachedEntry.cards.length} 张线上卡牌。`;
-    state.visibleCardCount = initialVisibleCardCount;
-    keepSelectionVisible();
-    render();
-    return;
-  }
-
   try {
-    const url = new URL(remoteSearchEndpoint);
-    url.searchParams.set("fname", query);
-    const response = await fetch(url.toString());
+    const response = await fetch(localDataPath);
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}`);
     }
 
     const payload = await response.json();
-    const remoteCards = Array.isArray(payload.data)
-      ? payload.data.slice(0, 40).map(mapRemoteCard).filter(Boolean)
-      : [];
-
-    remoteCache[cacheKey] = {
-      timestamp: Date.now(),
-      cards: remoteCards
-    };
-    saveRemoteCache();
-
-    if (requestToken !== activeRemoteRequestToken) return;
-    state.remoteCards = remoteCards;
-    state.isRemoteLoading = false;
+    const cards = Array.isArray(payload) ? payload.map(mapLocalCard).filter(Boolean) : [];
+    state.localCards = cards;
+    state.isLibraryLoading = false;
+    state.libraryStatus = `已加载 ${cards.length} 张本地卡牌。`;
     state.visibleCardCount = initialVisibleCardCount;
-    state.remoteStatus = remoteCards.length
-      ? `线上卡牌库补充了 ${remoteCards.length} 张相关卡牌。`
-      : "线上卡牌库没有返回更多结果，当前只显示本地示例卡。";
     keepSelectionVisible();
     render();
   } catch (error) {
-    if (requestToken !== activeRemoteRequestToken) return;
-    state.remoteCards = [];
-    state.isRemoteLoading = false;
+    state.localCards = [];
+    state.isLibraryLoading = false;
+    state.libraryError = "本地卡牌库加载失败，已回退到内置示例卡。";
+    state.libraryStatus = "没能读取本地卡牌库文件。";
     state.visibleCardCount = initialVisibleCardCount;
-    state.remoteError = "线上搜索暂时失败，先继续用内置卡牌。";
-    state.remoteStatus = "没能连上线上卡牌库。";
     keepSelectionVisible();
     render();
   }
 }
 
-function buildRemoteCacheKey(query) {
-  return query.trim().toLowerCase();
-}
-
-function mapRemoteCard(apiCard) {
+function mapLocalCard(apiCard) {
   if (!apiCard || typeof apiCard !== "object") return null;
 
   const typeLine = apiCard.type ?? "";
   const category = inferCategory(typeLine);
   const effectText = apiCard.desc ?? "";
-  const imageURL = apiCard.card_images?.[0]?.image_url ?? "";
+  const imageURL = apiCard.image_url ?? "";
   const name = apiCard.name ?? "未知卡牌";
   const localizedName = name;
 
@@ -744,7 +665,7 @@ function mapRemoteCard(apiCard) {
     recommendedUsage: summarizeRecommendedUsage({ category, typeLine, effectText }),
     usageTags: summarizeUsageTags({ category, typeLine, effectText }),
     synergyNotes: summarizeSynergyNotes({ category, typeLine, effectText }),
-    source: "remote"
+    source: "local"
   };
 }
 
