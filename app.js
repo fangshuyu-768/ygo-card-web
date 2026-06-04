@@ -7,6 +7,7 @@ const sampleCards = [
     typeLine: "Normal Monster",
     imageURL: "https://images.ygoprodeck.com/images/cards/89631139.jpg",
     effectText: "This legendary dragon is a powerful engine of destruction.",
+    translatedEffectText: "这只传说之龙拥有强大的破坏力。",
     childFriendlySummary: "通常怪兽，没有效果，主要依靠 3000 攻击力和 2500 守备力进行战斗。",
     recommendedUsage: "适合作为高攻击力主力怪兽使用，通常在能够稳定上场时用来压制对手场面。",
     usageTags: ["偏后手", "偏进攻", "主力打点"],
@@ -20,6 +21,7 @@ const sampleCards = [
     typeLine: "Normal Monster",
     imageURL: "https://images.ygoprodeck.com/images/cards/46986414.jpg",
     effectText: "The ultimate wizard in terms of attack and defense.",
+    translatedEffectText: "以攻击和守备能力而言，这是最强的魔法师。",
     childFriendlySummary: "通常怪兽，没有效果，主要作为高攻击力的经典怪兽使用。",
     recommendedUsage: "适合作为基础打点怪兽使用，通常用于配合以黑魔导为核心的相关支援卡。",
     usageTags: ["偏中盘", "偏进攻", "系列核心"],
@@ -33,6 +35,7 @@ const sampleCards = [
     typeLine: "Normal Spell Card",
     imageURL: "https://images.ygoprodeck.com/images/cards/83764718.jpg",
     effectText: "Target 1 monster in either GY; Special Summon it.",
+    translatedEffectText: "以任意一方墓地中的 1 只怪兽为对象发动；将那只怪兽特殊召唤。",
     childFriendlySummary: "选择任意一方墓地中的 1 只怪兽，将其特殊召唤到场上。",
     recommendedUsage: "适合在关键回合复活强力怪兽、补充展开资源，或者利用对手墓地中的怪兽反打。",
     usageTags: ["先后手都可", "偏展开", "墓地利用"],
@@ -46,6 +49,7 @@ const sampleCards = [
     typeLine: "Normal Trap Card",
     imageURL: "https://images.ygoprodeck.com/images/cards/44095762.jpg",
     effectText: "When an opponent's monster declares an attack: Destroy all your opponent's Attack Position monsters.",
+    translatedEffectText: "对手怪兽宣言攻击时发动；破坏对手场上所有攻击表示怪兽。",
     childFriendlySummary: "当对手怪兽宣言攻击时发动，破坏对手场上所有攻击表示怪兽。",
     recommendedUsage: "适合先盖放等待对手进攻时再发动，用来清掉对手攻击表示怪兽并扭转战斗阶段。",
     usageTags: ["偏先手", "偏防守", "反打"],
@@ -59,6 +63,7 @@ const sampleCards = [
     typeLine: "Normal Monster",
     imageURL: "https://images.ygoprodeck.com/images/cards/74677422.jpg",
     effectText: "A ferocious dragon with a deadly attack.",
+    translatedEffectText: "拥有凶猛攻击力的黑龙。",
     childFriendlySummary: "通常怪兽，没有效果，主要依靠 2400 攻击力进行战斗。",
     recommendedUsage: "适合作为中高打点怪兽使用，常用于需要龙族通常怪兽素材或配合真红眼相关卡组。",
     usageTags: ["偏中盘", "偏进攻", "系列素材"],
@@ -72,6 +77,7 @@ const sampleCards = [
     typeLine: "Effect Monster",
     imageURL: "https://images.ygoprodeck.com/images/cards/40640057.jpg",
     effectText: "During your opponent's turn, at damage calculation: You can discard this card; you take no battle damage from that battle.",
+    translatedEffectText: "对手回合的伤害计算时，你可以丢弃这张卡；那次战斗你受到的战斗伤害变成 0。",
     childFriendlySummary: "在对手回合的伤害计算时，可以丢弃这张卡，使那次战斗造成的战斗伤害变成 0。",
     recommendedUsage: "适合留在手牌中防守，遇到危险攻击时再丢弃，减少战斗伤害并保护自己的生命值。",
     usageTags: ["偏后手", "偏防守", "手坑式防护"],
@@ -85,6 +91,7 @@ const sampleCards = [
     typeLine: "Normal Spell Card",
     imageURL: "https://images.ygoprodeck.com/images/cards/72302403.jpg",
     effectText: "After this card's activation, it remains on the field, but destroy it during the End Phase of your opponent's 3rd turn. While this card is face-up on the field, your opponent's monsters cannot declare an attack.",
+    translatedEffectText: "这张卡发动后留在场上，并在对手第 3 个回合的结束阶段破坏。只要这张卡在场上表侧表示存在，对手怪兽不能宣言攻击。",
     childFriendlySummary: "发动后会在场上停留到对手第 3 个回合结束阶段破坏；存在期间，对手怪兽不能宣言攻击。",
     recommendedUsage: "适合在自己需要争取时间时使用，用来拖慢对手进攻节奏，给自己留下准备资源的回合。",
     usageTags: ["先后手都可", "偏防守", "拖回合"],
@@ -98,6 +105,7 @@ const sampleCards = [
     typeLine: "Normal Trap Card",
     imageURL: "https://images.ygoprodeck.com/images/cards/4206964.jpg",
     effectText: "When your opponent Normal or Flip Summons 1 monster with 1000 or more ATK: Target that monster; destroy that target.",
+    translatedEffectText: "对手通常召唤或反转召唤 1 只攻击力 1000 以上的怪兽时，以那只怪兽为对象发动；破坏那只怪兽。",
     childFriendlySummary: "当对手通常召唤或反转召唤 1 只攻击力 1000 以上的怪兽时发动，破坏那只怪兽。",
     recommendedUsage: "适合提前盖放，等对手召出关键怪兽时立刻处理，打断对手正常展开。",
     usageTags: ["偏先手", "偏解场", "打断召唤"],
@@ -299,7 +307,7 @@ function renderSpotlight() {
         <p class="spotlight-kicker">Spotlight Card</p>
         <h2 class="spotlight-title">${escapeHtml(card.localizedName)}</h2>
         <p class="detail-subtitle">${escapeHtml(card.name)}</p>
-        <p class="spotlight-summary">${escapeHtml(card.effectText)}</p>
+        <p class="spotlight-summary">${escapeHtml(card.translatedEffectText || card.effectText)}</p>
         <div class="tag-row">
           <span class="tag">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</span>
           <span class="tag tag-soft">${escapeHtml(getSourceLabel(card))}</span>
@@ -369,7 +377,7 @@ function renderList() {
             </div>
             <p class="card-meta">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</p>
             <p class="card-meta">${escapeHtml(getSourceLabel(card))}</p>
-            <p class="card-summary">${escapeHtml(card.effectText)}</p>
+            <p class="card-summary">${escapeHtml(card.translatedEffectText || card.effectText)}</p>
             ${matchBadges ? `<div class="match-badges">${matchBadges}</div>` : ""}
           </div>
         </article>
@@ -420,7 +428,11 @@ function renderDetail() {
         <button class="secondary-button" id="random-from-detail-button">换一张随机卡</button>
       </div>
       <section class="info-block">
-        <h3>原始介绍</h3>
+        <h3>中文说明</h3>
+        <p>${escapeHtml(card.translatedEffectText || card.effectText)}</p>
+      </section>
+      <section class="info-block">
+        <h3>英文原文</h3>
         <p>${escapeHtml(card.effectText)}</p>
       </section>
       <section class="info-block">
@@ -473,6 +485,7 @@ function getFilteredCards() {
         card.category,
         card.typeLine,
         card.effectText,
+        card.translatedEffectText,
         card.childFriendlySummary
       ].some((field) => field.toLowerCase().includes(query));
 
@@ -726,6 +739,7 @@ function mapRemoteCard(apiCard) {
     typeLine,
     imageURL,
     effectText,
+    translatedEffectText: translateEffectTextToChinese(effectText),
     childFriendlySummary: summarizeEffectPoints({ name, category, typeLine, effectText }),
     recommendedUsage: summarizeRecommendedUsage({ category, typeLine, effectText }),
     usageTags: summarizeUsageTags({ category, typeLine, effectText }),
@@ -768,6 +782,83 @@ function summarizeEffectPoints({ name, category, typeLine, effectText }) {
   }
 
   return `效果重点：${[...new Set(effectParts)].slice(0, 4).join("；")}。`;
+}
+
+function translateEffectTextToChinese(effectText) {
+  const effect = String(effectText).replace(/\r?\n+/g, " ").replace(/\s+/g, " ").trim();
+  if (!effect) return "";
+
+  const exactMap = new Map([
+    ["Target 1 monster in either GY; Special Summon it.", "以任意一方墓地中的 1 只怪兽为对象发动；将那只怪兽特殊召唤。"],
+    ["When an opponent's monster declares an attack: Destroy all your opponent's Attack Position monsters.", "对手怪兽宣言攻击时发动；破坏对手场上所有攻击表示怪兽。"],
+    ["During your opponent's turn, at damage calculation: You can discard this card; you take no battle damage from that battle.", "对手回合的伤害计算时，你可以丢弃这张卡；那次战斗你受到的战斗伤害变成 0。"],
+    ["The ultimate wizard in terms of attack and defense.", "以攻击和守备能力而言，这是最强的魔法师。"],
+    ["This legendary dragon is a powerful engine of destruction.", "这只传说之龙拥有强大的破坏力。"],
+    ["A ferocious dragon with a deadly attack.", "拥有凶猛攻击力的黑龙。"]
+  ]);
+
+  if (exactMap.has(effect)) {
+    return exactMap.get(effect);
+  }
+
+  let translated = effect;
+  const replacements = [
+    [/Cannot be Normal Summoned\/Set\./gi, "不能通常召唤/盖放。"],
+    [/Must be Ritual Summoned\./gi, "必须通过仪式召唤。"],
+    [/Must first be Special Summoned/gi, "必须先特殊召唤"],
+    [/You can only use each effect of/gi, "以下各效果各回合只能使用 1 次："],
+    [/You can only use this effect of/gi, "这个效果每回合只能使用 1 次："],
+    [/During your opponent's turn/gi, "对手回合中"],
+    [/During your End Phase/gi, "在结束阶段"],
+    [/At the start of the Damage Step/gi, "在伤害步骤开始时"],
+    [/at damage calculation/gi, "在伤害计算时"],
+    [/When an opponent's monster declares an attack/gi, "对手怪兽宣言攻击时"],
+    [/When your opponent Normal or Flip Summons 1 monster with 1000 or more ATK/gi, "对手通常召唤或反转召唤 1 只攻击力 1000 以上的怪兽时"],
+    [/Target 1 monster in either GY/gi, "以任意一方墓地中的 1 只怪兽为对象"],
+    [/Target that monster/gi, "以那只怪兽为对象"],
+    [/destroy that target/gi, "破坏那只怪兽"],
+    [/Destroy all your opponent's Attack Position monsters/gi, "破坏对手场上所有攻击表示怪兽"],
+    [/Special Summon it/gi, "将那只怪兽特殊召唤"],
+    [/Special Summon this card/gi, "将这张卡特殊召唤"],
+    [/add 1/gi, "把 1 张"],
+    [/from your Deck to your hand/gi, "从卡组加入手牌"],
+    [/draw 1 card/gi, "抽 1 张卡"],
+    [/return it to the hand/gi, "将其返回手牌"],
+    [/return that target to the hand/gi, "将那张卡返回手牌"],
+    [/banish this card/gi, "将这张卡除外"],
+    [/GY/gi, "墓地"],
+    [/Graveyard/gi, "墓地"],
+    [/battle damage/gi, "战斗伤害"],
+    [/cannot declare an attack/gi, "不能宣言攻击"],
+    [/cannot be destroyed/gi, "不会被破坏"],
+    [/cannot target/gi, "不能作为对象"],
+    [/negate the activation/gi, "那次发动无效"],
+    [/negate that effect/gi, "那个效果无效"],
+    [/Once per turn/gi, "1 回合 1 次"],
+    [/If this card is Special Summoned/gi, "这张卡特殊召唤成功时"],
+    [/If this card battles/gi, "这张卡进行战斗时"],
+    [/If this card attacks a Defense Position monster/gi, "这张卡攻击守备表示怪兽时"],
+    [/You can target 1 card your opponent controls/gi, "可以以对手场上 1 张卡为对象"],
+    [/all Level 8 or higher Dragon monsters you control gain 1000 ATK/gi, "自己场上全部 8 星以上龙族怪兽攻击力上升 1000"],
+    [/your opponent cannot target this card with card effects/gi, "对手不能用卡的效果以这张卡为对象"],
+    [/also it cannot be destroyed by your opponent's card effects/gi, "并且不会被对手的卡的效果破坏"]
+  ];
+
+  replacements.forEach(([pattern, replacement]) => {
+    translated = translated.replace(pattern, replacement);
+  });
+
+  translated = translated
+    .replace(/;/g, "；")
+    .replace(/:/g, "：")
+    .replace(/,/g, "，")
+    .replace(/\./g, "。");
+
+  if (!/[一-龥]/.test(translated)) {
+    return effect;
+  }
+
+  return translated;
 }
 
 function summarizeRecommendedUsage({ category, typeLine, effectText }) {
@@ -884,7 +975,7 @@ function speakCard(card) {
   }
 
   window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(`${card.localizedName}。原始介绍：${card.effectText}。推荐用法：${card.recommendedUsage}。使用定位：${card.usageTags.join("，")}。常见配合方向：${card.synergyNotes}`);
+  const utterance = new SpeechSynthesisUtterance(`${card.localizedName}。中文说明：${card.translatedEffectText || card.effectText}。推荐用法：${card.recommendedUsage}。使用定位：${card.usageTags.join("，")}。常见配合方向：${card.synergyNotes}`);
   utterance.lang = "zh-CN";
   utterance.rate = 0.95;
   window.speechSynthesis.speak(utterance);
