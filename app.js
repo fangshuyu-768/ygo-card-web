@@ -7,7 +7,8 @@ const sampleCards = [
     typeLine: "Normal Monster",
     imageURL: "https://images.ygoprodeck.com/images/cards/89631139.jpg",
     effectText: "This legendary dragon is a powerful engine of destruction.",
-    childFriendlySummary: "通常怪兽，没有效果，主要依靠 3000 攻击力和 2500 守备力进行战斗。"
+    childFriendlySummary: "通常怪兽，没有效果，主要依靠 3000 攻击力和 2500 守备力进行战斗。",
+    recommendedUsage: "适合作为高攻击力主力怪兽使用，通常在能够稳定上场时用来压制对手场面。"
   },
   {
     id: 46986414,
@@ -17,7 +18,8 @@ const sampleCards = [
     typeLine: "Normal Monster",
     imageURL: "https://images.ygoprodeck.com/images/cards/46986414.jpg",
     effectText: "The ultimate wizard in terms of attack and defense.",
-    childFriendlySummary: "通常怪兽，没有效果，主要作为高攻击力的经典怪兽使用。"
+    childFriendlySummary: "通常怪兽，没有效果，主要作为高攻击力的经典怪兽使用。",
+    recommendedUsage: "适合作为基础打点怪兽使用，通常用于配合以黑魔导为核心的相关支援卡。"
   },
   {
     id: 83764718,
@@ -27,7 +29,8 @@ const sampleCards = [
     typeLine: "Normal Spell Card",
     imageURL: "https://images.ygoprodeck.com/images/cards/83764718.jpg",
     effectText: "Target 1 monster in either GY; Special Summon it.",
-    childFriendlySummary: "选择任意一方墓地中的 1 只怪兽，将其特殊召唤到场上。"
+    childFriendlySummary: "选择任意一方墓地中的 1 只怪兽，将其特殊召唤到场上。",
+    recommendedUsage: "适合在关键回合复活强力怪兽、补充展开资源，或者利用对手墓地中的怪兽反打。"
   },
   {
     id: 44095762,
@@ -37,7 +40,8 @@ const sampleCards = [
     typeLine: "Normal Trap Card",
     imageURL: "https://images.ygoprodeck.com/images/cards/44095762.jpg",
     effectText: "When an opponent's monster declares an attack: Destroy all your opponent's Attack Position monsters.",
-    childFriendlySummary: "当对手怪兽宣言攻击时发动，破坏对手场上所有攻击表示怪兽。"
+    childFriendlySummary: "当对手怪兽宣言攻击时发动，破坏对手场上所有攻击表示怪兽。",
+    recommendedUsage: "适合先盖放等待对手进攻时再发动，用来清掉对手攻击表示怪兽并扭转战斗阶段。"
   },
   {
     id: 74677422,
@@ -47,7 +51,8 @@ const sampleCards = [
     typeLine: "Normal Monster",
     imageURL: "https://images.ygoprodeck.com/images/cards/74677422.jpg",
     effectText: "A ferocious dragon with a deadly attack.",
-    childFriendlySummary: "通常怪兽，没有效果，主要依靠 2400 攻击力进行战斗。"
+    childFriendlySummary: "通常怪兽，没有效果，主要依靠 2400 攻击力进行战斗。",
+    recommendedUsage: "适合作为中高打点怪兽使用，常用于需要龙族通常怪兽素材或配合真红眼相关卡组。"
   },
   {
     id: 40640057,
@@ -57,7 +62,8 @@ const sampleCards = [
     typeLine: "Effect Monster",
     imageURL: "https://images.ygoprodeck.com/images/cards/40640057.jpg",
     effectText: "During your opponent's turn, at damage calculation: You can discard this card; you take no battle damage from that battle.",
-    childFriendlySummary: "在对手回合的伤害计算时，可以丢弃这张卡，使那次战斗造成的战斗伤害变成 0。"
+    childFriendlySummary: "在对手回合的伤害计算时，可以丢弃这张卡，使那次战斗造成的战斗伤害变成 0。",
+    recommendedUsage: "适合留在手牌中防守，遇到危险攻击时再丢弃，减少战斗伤害并保护自己的生命值。"
   },
   {
     id: 72302403,
@@ -67,7 +73,8 @@ const sampleCards = [
     typeLine: "Normal Spell Card",
     imageURL: "https://images.ygoprodeck.com/images/cards/72302403.jpg",
     effectText: "After this card's activation, it remains on the field, but destroy it during the End Phase of your opponent's 3rd turn. While this card is face-up on the field, your opponent's monsters cannot declare an attack.",
-    childFriendlySummary: "发动后会在场上停留到对手第 3 个回合结束阶段破坏；存在期间，对手怪兽不能宣言攻击。"
+    childFriendlySummary: "发动后会在场上停留到对手第 3 个回合结束阶段破坏；存在期间，对手怪兽不能宣言攻击。",
+    recommendedUsage: "适合在自己需要争取时间时使用，用来拖慢对手进攻节奏，给自己留下准备资源的回合。"
   },
   {
     id: 4206964,
@@ -77,7 +84,8 @@ const sampleCards = [
     typeLine: "Normal Trap Card",
     imageURL: "https://images.ygoprodeck.com/images/cards/4206964.jpg",
     effectText: "When your opponent Normal or Flip Summons 1 monster with 1000 or more ATK: Target that monster; destroy that target.",
-    childFriendlySummary: "当对手通常召唤或反转召唤 1 只攻击力 1000 以上的怪兽时发动，破坏那只怪兽。"
+    childFriendlySummary: "当对手通常召唤或反转召唤 1 只攻击力 1000 以上的怪兽时发动，破坏那只怪兽。",
+    recommendedUsage: "适合提前盖放，等对手召出关键怪兽时立刻处理，打断对手正常展开。"
   }
 ].map((card) => ({ ...card, source: "sample" }));
 
@@ -403,6 +411,10 @@ function renderDetail() {
         <h3>效果要点</h3>
         <p>${escapeHtml(card.childFriendlySummary)}</p>
       </section>
+      <section class="info-block">
+        <h3>推荐用法</h3>
+        <p>${escapeHtml(card.recommendedUsage)}</p>
+      </section>
     </article>
   `;
 
@@ -689,6 +701,7 @@ function mapRemoteCard(apiCard) {
     imageURL,
     effectText,
     childFriendlySummary: summarizeEffectPoints({ name, category, typeLine, effectText }),
+    recommendedUsage: summarizeRecommendedUsage({ category, typeLine, effectText }),
     source: "remote"
   };
 }
@@ -729,6 +742,54 @@ function summarizeEffectPoints({ name, category, typeLine, effectText }) {
   return `效果重点：${[...new Set(effectParts)].slice(0, 4).join("；")}。`;
 }
 
+function summarizeRecommendedUsage({ category, typeLine, effectText }) {
+  const effect = String(effectText).replace(/\s+/g, " ").trim();
+  const lowered = effect.toLowerCase();
+  const normalizedType = String(typeLine).toLowerCase();
+
+  if (lowered.includes("special summon")) {
+    return "推荐在需要补充场面、延续展开，或把关键怪兽重新利用时使用。";
+  }
+
+  if (lowered.includes("destroy") && category === "陷阱") {
+    return "推荐先盖放，等对手做出关键动作后再发动，用来打断展开或解掉威胁。";
+  }
+
+  if (lowered.includes("destroy")) {
+    return "推荐在对手场上出现关键卡时使用，优先处理高威胁目标。";
+  }
+
+  if (lowered.includes("negate")) {
+    return "推荐保留到关键时点再用，优先无效对手最重要的效果或发动。";
+  }
+
+  if (lowered.includes("add 1")) {
+    return "推荐在回合前段使用，先把需要的资源加入手牌，再安排后续展开。";
+  }
+
+  if (lowered.includes("cannot attack")) {
+    return "推荐在自己需要争取回合时使用，用来拖慢对手进攻节奏。";
+  }
+
+  if (lowered.includes("battle damage")) {
+    return "推荐在战斗阶段保留，等需要防守或减少伤害时再用。";
+  }
+
+  if (normalizedType.includes("normal monster")) {
+    return "推荐作为基础战斗怪兽、素材，或与对应系列支援卡配合使用。";
+  }
+
+  if (category === "魔法") {
+    return "推荐在最能扩大收益的时点使用，优先服务自己当前回合的关键动作。";
+  }
+
+  if (category === "陷阱") {
+    return "推荐先盖放，等对手进入关键步骤时再发动。";
+  }
+
+  return "推荐结合当前场面决定时机，优先在能改变场面交换结果时使用。";
+}
+
 function speakCard(card) {
   if (!("speechSynthesis" in window)) {
     showToast("当前浏览器不支持朗读。");
@@ -736,7 +797,7 @@ function speakCard(card) {
   }
 
   window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(`${card.localizedName}。${card.effectText}`);
+  const utterance = new SpeechSynthesisUtterance(`${card.localizedName}。原始介绍：${card.effectText}。推荐用法：${card.recommendedUsage}`);
   utterance.lang = "zh-CN";
   utterance.rate = 0.95;
   window.speechSynthesis.speak(utterance);
