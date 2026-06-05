@@ -324,7 +324,12 @@ def download_image(url: str, target: Path, timeout: float, retries: int, sleep_s
             with urllib.request.urlopen(req, timeout=timeout) as response:
                 target.write_bytes(response.read())
             return True
-        except urllib.error.URLError:
+        except (urllib.error.URLError, TimeoutError, ConnectionResetError, OSError):
+            if target.exists():
+                try:
+                    target.unlink()
+                except OSError:
+                    pass
             if attempt > retries:
                 return False
             time.sleep(sleep_s)
