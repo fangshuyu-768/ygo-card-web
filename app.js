@@ -293,12 +293,11 @@ function renderSpotlight() {
     <article class="spotlight-content">
       <img class="spotlight-image" src="${escapeHtml(card.imageURL)}" alt="${escapeHtml(card.localizedName)}" />
       <div>
-        <p class="spotlight-kicker">Spotlight Card</p>
-        <h2 class="spotlight-title">${escapeHtml(card.localizedName)}</h2>
-        <p class="detail-subtitle">${escapeHtml(card.name)}</p>
+        <p class="spotlight-kicker">焦点卡牌</p>
+        <h2 class="spotlight-title">${escapeHtml(getDisplayName(card))}</h2>
         <p class="spotlight-summary">${escapeHtml(getDisplayDescription(card))}</p>
         <div class="tag-row">
-          <span class="tag">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</span>
+          <span class="tag">${escapeHtml(getDisplayTypeLine(card))}</span>
           <span class="tag tag-soft">${escapeHtml(getSourceLabel(card))}</span>
         </div>
         <div class="spotlight-actions">
@@ -359,12 +358,11 @@ function renderList() {
           <div>
             <div class="list-card-head">
               <div>
-                <h3 class="list-card-title">${escapeHtml(card.localizedName)}</h3>
-                <p class="detail-subtitle">${escapeHtml(card.name)}</p>
+                <h3 class="list-card-title">${escapeHtml(getDisplayName(card))}</h3>
               </div>
               ${isFavorite(card.id) ? '<span class="star" aria-label="已收藏">★</span>' : ""}
             </div>
-            <p class="card-meta">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</p>
+            <p class="card-meta">${escapeHtml(getDisplayTypeLine(card))}</p>
             <p class="card-meta">${escapeHtml(getSourceLabel(card))}</p>
             <p class="card-summary">${escapeHtml(getDisplayDescription(card))}</p>
             ${matchBadges ? `<div class="match-badges">${matchBadges}</div>` : ""}
@@ -403,10 +401,9 @@ function renderDetail() {
       </div>
       <div class="detail-title-row">
         <div>
-          <h2 class="detail-title">${escapeHtml(card.localizedName)}</h2>
-          <p class="detail-subtitle">${escapeHtml(card.name)}</p>
+          <h2 class="detail-title">${escapeHtml(getDisplayName(card))}</h2>
           <div class="tag-row">
-            <span class="tag">${escapeHtml(card.category)} · ${escapeHtml(card.typeLine)}</span>
+            <span class="tag">${escapeHtml(getDisplayTypeLine(card))}</span>
             <span class="tag tag-soft">${escapeHtml(getSourceLabel(card))}</span>
           </div>
         </div>
@@ -563,6 +560,44 @@ function getSourceLabel(card) {
   return card.source === "local" ? "本地卡库" : "内置示例";
 }
 
+function getDisplayName(card) {
+  const localized = String(card.localizedName ?? "").trim();
+  if (containsChinese(localized)) {
+    return localized;
+  }
+
+  const translated = localizeCardName(card.name ?? "");
+  if (containsChinese(translated)) {
+    return translated;
+  }
+
+  return localized || String(card.name ?? "").trim() || "未命名卡牌";
+}
+
+function getDisplayTypeLine(card) {
+  const raw = String(card.typeLine ?? "").trim();
+  const normalized = raw.toLowerCase();
+
+  if (normalized === "spell card") return "魔法卡";
+  if (normalized === "trap card") return "陷阱卡";
+  if (normalized === "normal spell card") return "通常魔法";
+  if (normalized === "normal trap card") return "通常陷阱";
+  if (normalized === "normal monster") return "通常怪兽";
+  if (normalized === "effect monster") return "效果怪兽";
+  if (normalized === "ritual monster") return "仪式怪兽";
+  if (normalized === "fusion monster") return "融合怪兽";
+  if (normalized === "synchro monster") return "同调怪兽";
+  if (normalized === "xyz monster") return "超量怪兽";
+  if (normalized === "link monster") return "连接怪兽";
+  if (normalized === "tuner monster") return "调整怪兽";
+  if (normalized === "pendulum effect monster") return "灵摆效果怪兽";
+  if (normalized === "normal tuner monster") return "通常调整怪兽";
+
+  if (card.category === "魔法") return "魔法卡";
+  if (card.category === "陷阱") return "陷阱卡";
+  return "怪兽卡";
+}
+
 function getDisplayDescription(card) {
   const translated = String(card.translatedEffectText ?? "").trim();
   if (containsChinese(translated) && !hasTooMuchEnglish(translated)) {
@@ -584,6 +619,53 @@ function getDisplayDescription(card) {
 
 function containsChinese(text) {
   return /[\u3400-\u9fff]/.test(String(text));
+}
+
+function localizeCardName(name) {
+  const exactMap = new Map([
+    ["Blue-Eyes White Dragon", "青眼白龙"],
+    ["Mystical Space Typhoon", "旋风"],
+    ["Call of the Haunted", "活死人的呼声"],
+    ["Dark Magician", "黑魔导"],
+    ["Polymerization", "融合"],
+    ["Monster Reborn", "死者苏生"],
+    ["Cyber Dragon", "电子龙"],
+    ["Book of Moon", "月之书"],
+    ["Dark Magician Girl", "黑魔导女孩"],
+    ["Reinforcement of the Army", "增援"],
+    ["Dark Hole", "黑洞"],
+    ["Swords of Revealing Light", "光之护封剑"],
+    ["Red-Eyes Black Dragon", "真红眼黑龙"],
+    ["Enemy Controller", "敌人控制器"],
+    ["Mirror Force", "神圣防护罩-反射镜力-"],
+    ["Terraforming", "地形形成"],
+    ["Dust Tornado", "龙卷"],
+    ["Foolish Burial", "愚蠢的埋葬"],
+    ["Trap Hole", "落穴"],
+    ["Solemn Judgment", "神之宣告"],
+    ["Torrential Tribute", "激流葬"],
+    ["Magic Cylinder", "魔法筒"],
+    ["Compulsory Evacuation Device", "强制脱出装置"],
+    ["Raigeki", "雷击"],
+    ["Scapegoat", "替罪羊"],
+    ["Kuriboh", "栗子球"],
+    ["Buster Blader", "破坏剑士"],
+    ["Creature Swap", "生还的宝札"],
+    ["Fissure", "地割"],
+    ["Allure of Darkness", "暗之诱惑"],
+    ["Heavy Storm", "大风暴"],
+    ["Card Trooper", "卡片炮手"],
+    ["D.D. Crow", "D.D.乌鸦"],
+    ["Ghost Ogre & Snow Rabbit", "幽鬼兔"],
+    ["Super Polymerization", "超融合"],
+    ["Ash Blossom & Joyous Spring", "灰流丽"],
+    ["Jinzo", "人造人-念力震慑者"],
+    ["Summoned Skull", "恶魔召唤"],
+    ["Limiter Removal", "限制解除"],
+    ["Pot of Duality", "强欲而谦虚之壶"]
+  ]);
+
+  return exactMap.get(String(name).trim()) || String(name).trim();
 }
 
 function hasTooMuchEnglish(text) {

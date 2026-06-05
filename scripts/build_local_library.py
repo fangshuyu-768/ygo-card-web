@@ -26,6 +26,24 @@ EXACT_TRANSLATIONS = {
 }
 
 
+def card_set_count(card: dict) -> int:
+    return len(card.get("card_sets") or [])
+
+
+def common_card_sort_key(card: dict) -> tuple:
+    type_line = str(card.get("type") or "")
+    category_weight = 0
+    if "Spell" in type_line or "Trap" in type_line:
+        category_weight = 1
+
+    return (
+        -card_set_count(card),
+        -category_weight,
+        str(card.get("name") or ""),
+        int(card.get("id") or 0),
+    )
+
+
 def infer_category(type_line: str) -> str:
     normalized = (type_line or "").lower()
     if "spell" in normalized:
@@ -339,7 +357,9 @@ def download_image(url: str, target: Path, timeout: float, retries: int, sleep_s
 def main() -> int:
     parser = argparse.ArgumentParser(description="Build local Yu-Gi-Oh card library and optionally download images.")
     parser.add_argument("--limit", type=int, default=0, help="Only process the first N cards.")
+    parser.add_argument("--selection", choices=["raw-order", "common"], default="raw-order", help="Choose cards in API order or prefer widely reprinted common cards.")
     parser.add_argument("--skip-images", action="store_true", help="Do not download images.")
+    parser.add_argument("--prune-images", action="store_true", help="Delete local card images that are not part of the selected library.")
     parser.add_argument("--image-size", choices=["small", "cropped", "full"], default="small")
     parser.add_argument("--timeout", type=float, default=20.0)
     parser.add_argument("--retries", type=int, default=1)
@@ -352,6 +372,8 @@ def main() -> int:
 
     raw = json.loads(RAW_PATH.read_text())
     cards = raw.get("data", [])
+    if args.selection == "common":
+        cards = sorted(cards, key=common_card_sort_key)
     if args.limit > 0:
         cards = cards[: args.limit]
 
@@ -364,6 +386,7 @@ def main() -> int:
         return 0
 
     IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+    selected_ids = {record["id"] for record in records}
     ok = 0
     failed = 0
     for idx, record in enumerate(records, start=1):
@@ -380,6 +403,18 @@ def main() -> int:
         for record in records:
             record["imageURL"] = record["imageLocalPath"]
         OUTPUT_PATH.write_text(json.dumps(records, ensure_ascii=False))
+
+    if args.prune_images:
+        removed = 0
+        for image_path in IMAGES_DIR.glob("*.jpg"):
+            try:
+                image_id = int(image_path.stem)
+            except ValueError:
+                continue
+            if image_id not in selected_ids:
+                image_path.unlink()
+                removed += 1
+        print(f"pruned {removed} images not in the selected library")
 
     print(f"image download finished: ok={ok}, failed={failed}")
     return 0 if failed == 0 else 2
